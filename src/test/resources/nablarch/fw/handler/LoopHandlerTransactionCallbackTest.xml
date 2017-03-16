@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ハンドラの設定ファイル
+-->
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration  ../../../../../main/resources/component-configuration.xsd">
+
+  <!-- データベース接続ハンドラ -->
+  <import file="db-default.xml" />
+
+  <!-- 透過的トランザクションの設定 -->
+  <component name="transactionManagementHandler"
+      class="nablarch.common.handler.TransactionManagementHandler">
+    <property name="transactionFactory" ref="jdbcTransactionFactory" />
+  </component>
+
+  <!-- データベースコネクションを実現するハンドラ -->
+  <component name="dbConnectionManagementHandler"
+      class="nablarch.common.handler.DbConnectionManagementHandler">
+    <property name="connectionFactory" ref="connectionFactory" />
+  </component>
+
+  <!--コミットログ実装-->
+  <component name="commitLogger"
+      class="nablarch.core.log.app.BasicCommitLogger">
+    <property name="interval" value="500" />
+  </component>
+
+  <!-- ハンドラキュー構成 -->
+  <list name="handlerQueue">
+    <!-- データベース接続ハンドラ -->
+    <component-ref name="dbConnectionManagementHandler" />
+
+    <!-- トランザクションマネージャ -->
+    <component-ref name="transactionManagementHandler" />
+
+    <!-- ディスパッチ -->
+    <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
+      <property name="basePackage" value="nablarch.fw.handler" />
+      <property name="immediate" value="false" />
+    </component>
+
+    <!-- スレッド実行ハンドラ -->
+    <component class="nablarch.fw.handler.MultiThreadExecutionHandler">
+      <property name="concurrentNumber" value="1" />
+      <property name="commitLogger" ref="commitLogger" />
+    </component>
+
+    <!-- データベース接続ハンドラ -->
+    <component-ref name="dbConnectionManagementHandler" />
+
+    <!-- ループ・トランザクション制御ハンドラ -->
+    <component class="nablarch.fw.handler.LoopHandler">
+      <property name="transactionFactory" ref="jdbcTransactionFactory" />
+    </component>
+
+    <!-- データリードハンドラ -->
+    <component class="nablarch.fw.handler.DataReadHandler">
+      <property name="maxCount" value="0" />
+    </component>
+
+  </list>
+</component-configuration>

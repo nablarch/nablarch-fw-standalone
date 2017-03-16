@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <!-- db接続情報設定ファイル -->
+  <import file="db-default.xml" />
+
+  <component name="retryHandler" class="nablarch.fw.handler.RetryHandler">
+    <property name="retryContextFactory">
+      <component class="nablarch.fw.handler.retry.CountingRetryContextFactory">
+        <property name="retryCount" value="20" />
+      </component>
+    </property>
+  </component>
+
+  <!-- 常駐化ハンドラ(デフォルト設定) -->
+  <component name="defaultProcessResidentHandler"
+      class="nablarch.fw.handler.ProcessResidentHandler">
+  </component>
+
+  <!-- 常駐化ハンドラ(データ監視間隔短い版) -->
+  <component name="fastProcessResidentHandler"
+      class="nablarch.fw.handler.ProcessResidentHandler">
+    <property name="dataWatchInterval" value="1" />
+  </component>
+
+  <!-- 常駐化ハンドラ(設定ありばん) -->
+  <component name="settingsProcessResidentHandler"
+      class="nablarch.fw.handler.ProcessResidentHandler">
+    <property name="dataWatchInterval" value="5000" />
+    <property name="normalEndExceptions">
+      <list>
+        <value>nablarch.fw.handler.ProcessStopHandler$ProcessStop</value>
+        <value>java.lang.IllegalArgumentException</value>
+      </list>
+    </property>
+    <property name="abnormalEndExceptions">
+      <list>
+        <value>nablarch.fw.launcher.ProcessAbnormalEnd</value>
+        <value>java.lang.NullPointerException</value>
+      </list>
+    </property>
+  </component>
+
+  <!-- 開閉局チェックハンドラ -->
+  <component name="serviceAvailabilityCheckHandler"
+      class="nablarch.common.availability.ServiceAvailabilityCheckHandler">
+    <property name="usesInternalRequestId" value="false" />
+    <property name="serviceAvailability">
+      <component name="basicServiceAvailability" class="nablarch.common.availability.BasicServiceAvailability">
+        <property name="dbManager" ref="tran" />
+        <property name="tableName" value="HANDLER_BATCH_REQUEST" />
+        <property name="requestTableRequestIdColumnName" value="REQUEST_ID" />
+        <property name="requestTableServiceAvailableColumnName"
+            value="SERVICE_AVAILABLE" />
+        <property name="requestTableServiceAvailableOkStatus" value="1" />
+      </component>
+    </property>
+  </component>
+  <component name="initializer"
+      class="nablarch.core.repository.initialization.BasicApplicationInitializer">
+    <property name="initializeList">
+      <list>
+        <component-ref name="serviceAvailabilityCheckHandler.basicServiceAvailability" />
+      </list>
+    </property>
+  </component>
+
+
+</component-configuration>

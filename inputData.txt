@@ -1,0 +1,3 @@
+Learning the vi and vim Editors, OReilly,         Robbins Hanneah and Lamb
+Programming with POSIX Threads,  Addison-Wesley,  David R. Butenhof
+HACKING (2nd ed),                no starch press, Jon Erickson

@@ -31,6 +31,20 @@ dependencies {
   compile "com.nablarch.framework:nablarch-core-repository:${nablarchCoreRepositoryVersion}"
 
   testCompile 'junit:junit:4.12'
+  testCompile "com.nablarch.framework:nablarch-core-jdbc:${nablarchCoreJdbcVersion}"
+  testCompile "com.nablarch.framework:nablarch-fw-batch:${nablarchFwBatchVersion}"
+  testCompile "com.nablarch.framework:nablarch-core-applog:${nablarchCoreApplogVersion}"
+  testCompile "com.nablarch.framework:nablarch-common-jdbc:${nablarchCommonJdbcVersion}"
+  testCompile "com.nablarch.framework:nablarch-common-auth:${nablarchCommonAuthVersion}"
+  testCompile "com.nablarch.framework:nablarch-common-auth-jdbc:${nablarchCommonAuthJdbcVersion}"
+  testCompile "com.nablarch.framework:nablarch-testing:${nablarchTestingVersion}"
+  testCompile "com.nablarch.dev:nablarch-test-support:0.0.5"
+
+  // jdbc drivers
+  testCompile 'com.oracle:ojdbc6:11.2.0.2.0'
+  testCompile 'com.oracle:ucp:11.2.0.3.0'
+
+  testRuntime files('src/test/java/')
   
   cobertura "net.sourceforge.cobertura:cobertura:1.9.4"
 }

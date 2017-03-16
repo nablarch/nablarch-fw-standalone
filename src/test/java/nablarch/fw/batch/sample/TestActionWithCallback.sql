@@ -1,0 +1,7 @@
+READ_INPUT_DATA =
+SELECT id
+FROM   InputData
+
+RECORD_RESULT =
+INSERT INTO ResultData
+VALUES (:id, :activity)

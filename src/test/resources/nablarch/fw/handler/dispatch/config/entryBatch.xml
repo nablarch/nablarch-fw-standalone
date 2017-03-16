@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ハンドラの設定ファイル
+-->
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration  ../component-configuration.xsd">
+
+    <!-- ディスパッチ（バッチ）  -->
+    <component name="batchEntry" class="nablarch.fw.RequestHandlerEntry">
+      <property name="requestPattern" value="//"/>
+      <property name="handler" >
+        <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
+            <property name="optionalPackageMappingEntries">
+              <list> 
+                <component class="nablarch.fw.handler.JavaPackageMappingEntry">
+                  <property name="requestPattern" value="/ss00A001/B11AC001Action/R0001*" />
+                  <property name="basePackage" value="nablarch.fw.handler.dispatch.test1" />
+                </component>
+                <component class="nablarch.fw.handler.JavaPackageMappingEntry">
+                  <property name="requestPattern" value="/ss00A001/B11AC001Action//" />
+                  <property name="basePackage" value="nablarch.fw.handler.dispatch.test2" />
+                </component>
+                <component class="nablarch.fw.handler.JavaPackageMappingEntry">
+                  <property name="requestPattern" value="/ss00A001//" />
+                  <property name="basePackage" value="nablarch.fw.handler.dispatch.test3" />
+                </component>
+                <component class="nablarch.fw.handler.JavaPackageMappingEntry">
+                  <property name="requestPattern" value="/ss00A002/test4/B11AC001" />
+                  <property name="basePackage" value="nablarch.fw.handler.dispatch.test4.ss00A001.B11AC001Action" />
+                </component> 
+              </list>
+            </property>
+            <property name="basePackage" value="nablarch.fw.handler.dispatch.base" />
+        </component>
+      </property>
+    </component>       
+
+</component-configuration>
