@@ -3,13 +3,14 @@ package nablarch.fw.handler;
 import nablarch.core.ThreadContext;
 import nablarch.core.dataformat.DataRecord;
 import nablarch.core.dataformat.DataRecordFormatter;
+import nablarch.core.dataformat.FileRecordReader;
 import nablarch.core.dataformat.FormatterFactory;
 import nablarch.core.util.Builder;
 import nablarch.core.util.FilePathSetting;
+import nablarch.fw.DataReader;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.reader.FileDataReader;
 import nablarch.test.support.tool.Hereis;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -84,16 +85,17 @@ public class RecordTypeBindingTest {
             }
         }
         
-        FilePathSetting.getInstance()
+        FilePathSetting setting = FilePathSetting.getInstance()
                 .addBasePathSetting("input",  "file:./")
                 .addBasePathSetting("format", "file:./")
                 .addFileExtensions("input", "dat")
                 .addFileExtensions("format", "fmt");
-        
+
+        File dataFile = setting.getFileWithoutCreate("input", "dataFile");
+        File layoutFile = setting.getFileWithoutCreate("format", "formatFile");
+
         ExecutionContext ctx = new ExecutionContext()
-            .setDataReader(new FileDataReader()
-                              .setLayoutFile("formatFile")
-                              .setDataFile("dataFile"))
+            .setDataReader(new FileDataReader(dataFile, layoutFile))
             .setMethodBinder(new RecordTypeBinding.Binder())
             .addHandler(new DumbLoopHandler())
             .addHandler(new DataReadHandler())
@@ -257,5 +259,29 @@ public class RecordTypeBindingTest {
         File dataFile = new File("./dataFile.dat");
         dataFile.deleteOnExit();
         new FileOutputStream(dataFile, false).write(testdata.getBytes("ms932"));
+    }
+
+    private static class FileDataReader implements DataReader<DataRecord> {
+
+        FileRecordReader reader;
+
+        FileDataReader(File dataFile, File layoutFile) {
+            reader = new FileRecordReader(dataFile, layoutFile, 8192);
+        }
+
+        @Override
+        public DataRecord read(ExecutionContext ctx) {
+            return reader.read();
+        }
+
+        @Override
+        public boolean hasNext(ExecutionContext ctx) {
+            return reader.hasNext();
+        }
+
+        @Override
+        public void close(ExecutionContext ctx) {
+            reader.close();
+        }
     }
 }

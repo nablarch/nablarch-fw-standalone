@@ -1,24 +1,28 @@
 package nablarch.fw.handler;
 
 import nablarch.core.repository.SystemRepository;
+
+import nablarch.fw.DataReader;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
-import nablarch.fw.handler.action.InputDataNothingBatchAction;
-import nablarch.fw.launcher.CommandLine;
 
-import nablarch.test.SystemPropertyResource;
+import nablarch.fw.handler.action.AbnormalEndHandler;
+import nablarch.fw.handler.action.ErrorOnFailureCallbackHandler1;
+import nablarch.fw.handler.action.ErrorOnFailureCallbackHandler2;
+import nablarch.fw.handler.action.ErrorOnSuccessCallbackHandler;
+import nablarch.fw.handler.action.InputDataNothingHandler;
+import nablarch.fw.handler.action.NormalEndHandler;
+import nablarch.fw.handler.action.RuntimeExceptionOnFailureCallbackHandler1;
+import nablarch.fw.handler.action.RuntimeExceptionOnFailureCallbackHandler2;
 import nablarch.test.support.SystemRepositoryResource;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.db.helper.VariousDbTestHelper;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 
+
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -33,28 +37,53 @@ import static org.junit.Assert.*;
  */
 @RunWith(DatabaseTestRunner.class)
 public class LoopHandlerTransactionCallbackTest {
-	
+
     @Rule
     public SystemRepositoryResource repositoryResource = new SystemRepositoryResource("nablarch/fw/handler/LoopHandlerTransactionCallbackTest.xml");
-    
-    @Rule
-    public final SystemPropertyResource systemPropertyResource = new SystemPropertyResource();
 
     @BeforeClass
     public static void classSetup() {
-    	VariousDbTestHelper.createTable(HandlerBatchInput.class);
-   }
-    
+        VariousDbTestHelper.createTable(HandlerBatchInput.class);
+    }
+
     @Before
-    public void setup() {
-    	VariousDbTestHelper.setUpTable(
-    			new HandlerBatchInput("0000000000", "0"),
-    			new HandlerBatchInput("0000000002", "0"),
-    			new HandlerBatchInput("0000000003", "0"),
-    			new HandlerBatchInput("0000000004", "0"),
-    			new HandlerBatchInput("0000000005", "0"),
-    			new HandlerBatchInput("0000000006", "0"),
-    			new HandlerBatchInput("0000000007", "0"));
+    public void setUp() {
+        VariousDbTestHelper.setUpTable(
+                new HandlerBatchInput("0000000000", "0"),
+                new HandlerBatchInput("0000000002", "0"),
+                new HandlerBatchInput("0000000003", "0"),
+                new HandlerBatchInput("0000000004", "0"),
+                new HandlerBatchInput("0000000005", "0"),
+                new HandlerBatchInput("0000000006", "0"),
+                new HandlerBatchInput("0000000007", "0"));
+    }
+
+    private static class Reader implements DataReader<String> {
+        private Iterator<String> iterator = new ArrayList<String>() {{
+            add("0000000000");
+            add("0000000002");
+            add("0000000003");
+            add("0000000004");
+            add("0000000005");
+            add("0000000006");
+            add("0000000007");
+        }}.iterator();
+
+        public String read(ExecutionContext ctx) {
+            if (iterator.hasNext()) {
+                return iterator.next();
+            } else {
+                return null;
+            }
+        }
+
+        public boolean hasNext(ExecutionContext ctx) {
+            return iterator.hasNext();
+        }
+
+        public void close(ExecutionContext ctx) {
+            // nop
+        }
     }
 
     /**
@@ -75,22 +104,18 @@ public class LoopHandlerTransactionCallbackTest {
      */
     @Test
     @SuppressWarnings("unchecked")
-    public void testHandle1() {
+    public void testHandle1() throws Exception {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath", "action.NormalEndBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        NormalEndHandler normalEndHandler = new NormalEndHandler();
+        handlerList.add(normalEndHandler);
 
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
-        context.handleNext(commandLine);
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
+        context.handleNext(null);
 
         List<HandlerBatchInput> result = VariousDbTestHelper.findAll(HandlerBatchInput.class);
         for (HandlerBatchInput entity : result) {
@@ -112,18 +137,14 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(3);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath", "action.NormalEndBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        NormalEndHandler handler = new NormalEndHandler();
+        handlerList.add(handler);
 
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
-        context.handleNext(commandLine);
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
+        context.handleNext(null);
 
         List<HandlerBatchInput> result = VariousDbTestHelper.findAll(HandlerBatchInput.class);
         for (HandlerBatchInput entity : result) {
@@ -144,19 +165,15 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath", "action.AbnormalEndBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        AbnormalEndHandler handler = new AbnormalEndHandler();
+        handlerList.add(handler);
 
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
         } catch (IllegalArgumentException e) {
             // nop
@@ -192,19 +209,15 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(5);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath", "action.AbnormalEndBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        AbnormalEndHandler handler = new AbnormalEndHandler();
+        handlerList.add(handler);
 
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
         } catch (IllegalArgumentException e) {
             // nop
@@ -232,19 +245,16 @@ public class LoopHandlerTransactionCallbackTest {
     public void testHandle5() {
 
         initRepository(1);
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.ErrorOnSuccessCallbackBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        ErrorOnSuccessCallbackHandler handler = new ErrorOnSuccessCallbackHandler();
+        handlerList.add(handler);
+
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
         } catch (NullPointerException e) {
             // nop
@@ -274,21 +284,17 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.RuntimeExceptionOnFailureCallbackBatchAction1/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        RuntimeExceptionOnFailureCallbackHandler1 handler = new RuntimeExceptionOnFailureCallbackHandler1();
+        handlerList.add(handler);
+
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
-        } catch (NullPointerException e) {
+        } catch (NumberFormatException e) {
             // nop
         }
 
@@ -311,19 +317,15 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.RuntimeExceptionOnFailureCallbackBatchAction2/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        RuntimeExceptionOnFailureCallbackHandler2 handler = new RuntimeExceptionOnFailureCallbackHandler2();
+        handlerList.add(handler);
+
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
         } catch (NullPointerException e) {
             // nop
@@ -348,21 +350,17 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.ErrorOnFailureCallbackBatchAction1/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        ErrorOnFailureCallbackHandler1 handler = new ErrorOnFailureCallbackHandler1();
+        handlerList.add(handler);
+
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
-        } catch (OutOfMemoryError e) {
+        } catch (StackOverflowError e) {
             // nop
         }
 
@@ -386,21 +384,17 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.ErrorOnFailureCallbackBatchAction2/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        ErrorOnFailureCallbackHandler2 handler = new ErrorOnFailureCallbackHandler2();
+        handlerList.add(handler);
+
         ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
-        } catch (OutOfMemoryError e) {
+        } catch (StackOverflowError e) {
             // nop
         }
 
@@ -414,7 +408,7 @@ public class LoopHandlerTransactionCallbackTest {
     /**
      * {@link LoopHandler#handle(Object, nablarch.fw.ExecutionContext)}のテスト。
      * <p/>
-     * インプットデータがnullなので、コールバックメソッドは呼び出されないこと。
+     * インプットデータが{@code null}なので、コールバックメソッドは呼び出されないこと。
      */
     @Test
     @SuppressWarnings("unchecked")
@@ -422,36 +416,32 @@ public class LoopHandlerTransactionCallbackTest {
 
         initRepository(1);
 
-        HashMap<String, String> opts = new HashMap<String, String>();
-        opts.put("diConfig", "");
-        opts.put("userId", "user");
-        opts.put("requestPath",
-                "action.InputDataNothingBatchAction/TEST");
-        CommandLine commandLine = new CommandLine(opts,
-                new ArrayList<String>());
-        ExecutionContext context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
+        List<Handler<?, ?>> handlerList = SystemRepository.get("handlerQueue");
+        InputDataNothingHandler handler = new InputDataNothingHandler();
+        handlerList.add(handler);
 
-        assertFalse(InputDataNothingBatchAction.normalEndCall);
-        context.handleNext(commandLine);
-        // アクション呼び出し後も、正常終了のコールバックが呼び出されないこと。
-        assertFalse(InputDataNothingBatchAction.normalEndCall);
+        ExecutionContext context = new ExecutionContext();
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
+
+        assertFalse(InputDataNothingHandler.normalEndCall);
+        context.handleNext(null);
+        // ハンドラ呼び出し後も、正常終了のコールバックが呼び出されないこと。
+        assertFalse(InputDataNothingHandler.normalEndCall);
 
         context = new ExecutionContext();
-        context.setHandlerQueue(
-                (Collection<? extends Handler>) SystemRepository.get(
-                        "handlerQueue"));
-        InputDataNothingBatchAction.onError = true;
-        assertFalse(InputDataNothingBatchAction.failuerCall);
+        context.setHandlerQueue(handlerList);
+        context.setDataReader(new Reader());
+
+        InputDataNothingHandler.onError = true;
+        assertFalse(InputDataNothingHandler.failuerCall);
         try {
-            context.handleNext(commandLine);
+            context.handleNext(null);
             fail("");
         } catch (IllegalStateException e) {
         }
-        // アクション呼び出し後も、正常終了のコールバックが呼び出されないこと。
-        assertFalse(InputDataNothingBatchAction.failuerCall);
+        // ハンドラ呼び出し後も、正常終了のコールバックが呼び出されないこと。
+        assertFalse(InputDataNothingHandler.failuerCall);
 
     }
 }

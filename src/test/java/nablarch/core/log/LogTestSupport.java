@@ -1,16 +1,17 @@
 package nablarch.core.log;
 
-import nablarch.test.SystemPropertyResource;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.contrib.java.lang.system.RestoreSystemProperties;
 
 import java.io.PrintStream;
 
 public class LogTestSupport {
-    
+
     @Rule
-    public final SystemPropertyResource systemPropertyResource = new SystemPropertyResource();
+    public final RestoreSystemProperties restoreSystemProperties = new RestoreSystemProperties();
       
     /** テスト前の状態を復元するための標準出力 */
     private PrintStream systemOut;
@@ -39,7 +40,6 @@ public class LogTestSupport {
      */
     @After
     public void tearDown() {
-        
 //        LoggerManager.terminate();
         Thread.currentThread().setContextClassLoader(defaultCL);
         

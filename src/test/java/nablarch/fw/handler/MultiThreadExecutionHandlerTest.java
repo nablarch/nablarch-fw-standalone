@@ -4,10 +4,10 @@ import nablarch.common.handler.DbConnectionManagementHandler;
 import nablarch.core.db.connection.ConnectionFactory;
 import nablarch.core.transaction.TransactionFactory;
 import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.action.BatchAction;
 import nablarch.fw.launcher.CommandLine;
 import nablarch.test.support.SystemRepositoryResource;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
@@ -34,11 +34,11 @@ public class MultiThreadExecutionHandlerTest {
 
     private final List<String> activities  = Collections.synchronizedList(new ArrayList<String>());
     private final Set<String> threadNames = new HashSet<String>();
-    private Result.MultiStatus results = null;
+    private Result.MultiStatus results;
 
-    private MultiThreadExecutionHandler executor = null;
+    private MultiThreadExecutionHandler executor;
 
-    private BatchAction<String> action = null;
+    private BaseAction<String> action;
 
     private CountDownLatch startGate;
 
@@ -48,12 +48,16 @@ public class MultiThreadExecutionHandlerTest {
     	transaction = repositoryResource.getComponentByType(TransactionFactory.class);
     }
 
+    private abstract class BaseAction<String> implements DataReaderFactory<String>, ExecutionHandlerCallback<String, Result>, Handler<String, Result> {
+        // nop
+    }
+
     /**
      * エラー発生時のスレッド停止処理の検証
      */
     @Test
     public void testTeminattion() {
-        class TestAction extends BatchAction<String> {
+        class TestAction extends BaseAction<String> {
             @Override
             public Result handle(String inputData, ExecutionContext ctx) {
                 activities.add("handle");
@@ -96,6 +100,21 @@ public class MultiThreadExecutionHandlerTest {
                     }
                 };
             }
+
+            @Override
+            public void preExecution(String input, ExecutionContext context) {
+                // nop
+            }
+
+            @Override
+            public void errorInExecution(Throwable error, ExecutionContext context) {
+                // nop
+            }
+
+            @Override
+            public void postExecution(Result result, ExecutionContext context) {
+                // nop
+            }
         }
 
         TestAction action = new TestAction();
@@ -109,11 +128,7 @@ public class MultiThreadExecutionHandlerTest {
                 .addHandler(new DataReadHandler())
                 .addHandler(action);
         try {
-            context.handleNext(new CommandLine(
-                    "-diConfig", "file:///dummy"
-                    , "-requestPath", "dummy/dumy"
-                    , "-userId", "dummyUser"
-            ));
+            context.handleNext(null);
             fail();
         } catch (RuntimeException e) {
             assertEquals("発生した例外に関連するデータが親スレッドのExecutionContextに設定されていること",
@@ -145,7 +160,7 @@ public class MultiThreadExecutionHandlerTest {
     @Test
     public void testMultithreadExecution() {
 
-        class TestAction extends BatchAction<String> {
+        class TestAction extends BaseAction<String> {
             @Override
             public Result handle(String item, ExecutionContext ctx) {
                 threadNames.add(Thread.currentThread()
@@ -168,17 +183,17 @@ public class MultiThreadExecutionHandlerTest {
             }
 
             @Override
-            protected void initialize(CommandLine command, ExecutionContext context) {
+            public void preExecution(String input, ExecutionContext context) {
                 activities.add("initialize");
             }
 
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add("error");
             }
 
             @Override
-            protected void terminate(Result result, ExecutionContext context) {
+            public void postExecution(Result result, ExecutionContext context) {
                 activities.add("terminate");
                 results = (Result.MultiStatus) result;
             }
@@ -226,11 +241,7 @@ public class MultiThreadExecutionHandlerTest {
         startGate = new CountDownLatch(1);
         results = null;
 
-        context.handleNext(new CommandLine(
-                  "-diConfig",    "file:///dummy"
-                , "-requestPath", "dummy/dumy"
-                , "-userId",      "dummyUser"
-        ));
+        context.handleNext(null);
 
         assertEquals(3, activities.size());
         assertEquals(1, threadNames.size());
@@ -275,11 +286,7 @@ public class MultiThreadExecutionHandlerTest {
 
         startGate = new CountDownLatch(100);
 
-        context.handleNext(new CommandLine(
-              "-diConfig",    "file:///dummy"
-            , "-requestPath", "dummy/dumy"
-            , "-userId",      "dummyUser"
-        ));
+        context.handleNext(null);
 
         assertEquals(102, activities.size());
         assertEquals(100, threadNames.size());
@@ -325,11 +332,7 @@ public class MultiThreadExecutionHandlerTest {
 
         startGate = new CountDownLatch(20);
 
-        context.handleNext(new CommandLine(
-              "-diConfig",    "file:///dummy"
-            , "-requestPath", "dummy/dumy"
-            , "-userId",      "dummyUser"
-        ));
+        context.handleNext(null);
 
         assertEquals(22, activities.size());
         assertEquals(20, threadNames.size());
@@ -388,11 +391,7 @@ public class MultiThreadExecutionHandlerTest {
         startGate = new CountDownLatch(20);
 
         try {
-            context.handleNext(new CommandLine(
-                  "-diConfig",    "file:///dummy"
-                , "-requestPath", "dummy/dumy"
-                , "-userId",      "dummyUser"
-            ));
+            context.handleNext(null);
             fail();
 
         } catch (Throwable e) {
@@ -439,7 +438,7 @@ public class MultiThreadExecutionHandlerTest {
 
         final List<Throwable> eList = new ArrayList<Throwable>();
 
-        class TestAction extends BatchAction<Map<String, String>> {
+        class TestAction extends BaseAction<Map<String, String>> {
             @Override
             public Result handle(Map<String, String> data, ExecutionContext ctx) {
                 threadNames.add(Thread.currentThread()
@@ -462,17 +461,17 @@ public class MultiThreadExecutionHandlerTest {
             }
 
             @Override
-            protected void initialize(CommandLine command, ExecutionContext context) {
+            public void preExecution(Map<String, String> stringStringMap, ExecutionContext context) {
                 activities.add("initialize");
             }
 
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add("error");
             }
 
             @Override
-            protected void terminate(Result result, ExecutionContext context) {
+            public void postExecution(Result result, ExecutionContext context) {
                 activities.add("terminate");
                 results = (Result.MultiStatus) result;
             }
@@ -509,7 +508,7 @@ public class MultiThreadExecutionHandlerTest {
             }
         }
 
-        BatchAction<Map<String, String>> act = new TestAction();
+        BaseAction<Map<String, String>> act = new TestAction();
 
         executor = new MultiThreadExecutionHandler()
                       .setConcurrentNumber(20);
@@ -528,11 +527,7 @@ public class MultiThreadExecutionHandlerTest {
         OnMemoryLogWriter.clear();
 
         try {
-            context.handleNext(new CommandLine(
-                  "-diConfig",    "file:///dummy"
-                , "-requestPath", "dummy/dumy"
-                , "-userId",      "dummyUser"
-            ));
+            context.handleNext(null);
             fail();
         } catch (Throwable e) {
 //                e.printStackTrace();
@@ -593,7 +588,7 @@ public class MultiThreadExecutionHandlerTest {
      */
     @Test
     public void testCallbackPoints() {
-        class TestAction extends BatchAction<String> {
+        class TestAction extends BaseAction<String> {
             @Override
             public Result handle(String inputData, ExecutionContext ctx) {
                 activities.add("handle");
@@ -621,30 +616,29 @@ public class MultiThreadExecutionHandlerTest {
                     }
                 };
             }
+
             @Override
-            protected void initialize(CommandLine command, ExecutionContext context) {
+            public void preExecution(String input, ExecutionContext context) {
                 activities.add("initialize");
             }
+
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add("onError");
             }
+
             @Override
-            protected void terminate(Result result, ExecutionContext context) {
+            public void postExecution(Result result, ExecutionContext context) {
                 activities.add("terminate");
             }
-        };
+        }
 
         action = new TestAction();
 
         executor = new MultiThreadExecutionHandler()
                       .setConcurrentNumber(1);
 
-        createExecutionContext().handleNext(new CommandLine(
-                  "-diConfig",    "file:///dummy"
-                , "-requestPath", "dummy/dumy"
-                , "-userId",      "dummyUser"
-        ));
+        createExecutionContext().handleNext(null);
 
         assertEquals(5, activities.size());
         assertEquals("initialize", activities.get(0)); // 初期処理
@@ -659,11 +653,7 @@ public class MultiThreadExecutionHandlerTest {
         // コールバックのリスナが複数存在する場合。
         createExecutionContext()
         .addHandler(new TestAction())
-        .handleNext(new CommandLine(
-                "-diConfig",    "file:///dummy"
-              , "-requestPath", "dummy/dumy"
-              , "-userId",      "dummyUser"
-        ));
+        .handleNext(null);
 
         assertEquals(7, activities.size());
         assertEquals("initialize", activities.get(0)); // 初期処理
@@ -681,7 +671,7 @@ public class MultiThreadExecutionHandlerTest {
                 throw new IllegalStateException("error@action");
             }
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add("onError:" + error.getCause().getClass().getSimpleName());
             }
         };
@@ -690,11 +680,7 @@ public class MultiThreadExecutionHandlerTest {
                       .setConcurrentNumber(1);
         activities.clear();
         try {
-            createExecutionContext().handleNext(new CommandLine(
-                    "-diConfig",    "file:///dummy"
-                  , "-requestPath", "dummy/dumy"
-                  , "-userId",      "dummyUser"
-            ));
+            createExecutionContext().handleNext(null);
             fail();
         } catch (RuntimeException e) {
             // nop
@@ -718,7 +704,7 @@ public class MultiThreadExecutionHandlerTest {
                 throw new IllegalStateException("error@action");
             }
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add(
                     "onError:" + error.getCause().getClass().getSimpleName() + " (causes an error!)"
                 );
@@ -728,13 +714,8 @@ public class MultiThreadExecutionHandlerTest {
 
         executor = new MultiThreadExecutionHandler()
                       .setConcurrentNumber(1);
-
         try {
-            createExecutionContext().handleNext(new CommandLine(
-                "-diConfig",    "file:///dummy"
-              , "-requestPath", "dummy/dumy"
-              , "-userId",      "dummyUser"
-            ));
+            createExecutionContext().handleNext(null);
             fail();
 
         } catch (RuntimeException e) {
@@ -763,7 +744,7 @@ public class MultiThreadExecutionHandlerTest {
                 return new Result.Success();
             }
             @Override
-            protected void terminate(Result result, ExecutionContext context) {
+            public void postExecution(Result result, ExecutionContext context) {
                 activities.add(
                     "terminate (causes an error!)"
                 );
@@ -775,11 +756,7 @@ public class MultiThreadExecutionHandlerTest {
                       .setConcurrentNumber(1);
 
         try {
-            createExecutionContext().handleNext(new CommandLine(
-                "-diConfig",    "file:///dummy"
-              , "-requestPath", "dummy/dumy"
-              , "-userId",      "dummyUser"
-            ));
+            createExecutionContext().handleNext(null);
             fail();
 
         } catch (RuntimeException e) {
@@ -842,15 +819,15 @@ public class MultiThreadExecutionHandlerTest {
                 throw new IllegalStateException("error@TestAction#handle");
             }
             @Override
-            protected void initialize(CommandLine command, ExecutionContext context) {
+            public void preExecution(String input, ExecutionContext context) {
                 activities.add("initialize@TestAction");
             }
             @Override
-            protected void error(Throwable error, ExecutionContext context) {
+            public void errorInExecution(Throwable error, ExecutionContext context) {
                 activities.add("error@TestAction:" + error.getCause().getClass().getSimpleName());
             }
             @Override
-            protected void terminate(Result result, ExecutionContext context) {
+            public void postExecution(Result result, ExecutionContext context) {
                 activities.add("terminate@TestAction");
             }
         };
@@ -875,11 +852,7 @@ public class MultiThreadExecutionHandlerTest {
                                   .addHandler(testAction);
 
         try {
-            ctx.handleNext(new CommandLine(
-                "-diConfig",    "file:///dummy"
-              , "-requestPath", "dummy/dumy"
-              , "-userId",      "dummyUser"
-            ));
+            ctx.handleNext(null);
             fail();
 
         } catch (RuntimeException e) {
@@ -920,11 +893,7 @@ public class MultiThreadExecutionHandlerTest {
         try {
             new ExecutionContext()
             .addHandler(new MultiThreadExecutionHandler())
-            .handleNext(new CommandLine(
-                "-diConfig",    "file:///dummy"
-              , "-requestPath", "dummy/dumy"
-              , "-userId",      "dummyUser"
-            ));
+            .handleNext(null);
             fail();
 
         } catch(Throwable t) {

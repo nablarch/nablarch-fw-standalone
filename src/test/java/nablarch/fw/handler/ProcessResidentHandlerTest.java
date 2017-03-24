@@ -1,10 +1,15 @@
 package nablarch.fw.handler;
 
 import nablarch.core.ThreadContext;
+import nablarch.core.db.connection.AppDbConnection;
+import nablarch.core.db.statement.SqlPStatement;
+import nablarch.core.db.statement.SqlResultSet;
+import nablarch.core.db.transaction.SimpleDbTransactionExecutor;
 import nablarch.core.db.transaction.SimpleDbTransactionManager;
 
 import nablarch.core.log.basic.LogWriterSupport;
 import nablarch.core.repository.SystemRepository;
+import nablarch.core.repository.initialization.Initializable;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
@@ -14,12 +19,14 @@ import nablarch.fw.handler.retry.RetryUtil;
 import nablarch.fw.handler.retry.RetryableException;
 import nablarch.fw.launcher.ProcessAbnormalEnd;
 import nablarch.fw.results.TransactionAbnormalEnd;
-import nablarch.test.StringMatcher;
+
 import nablarch.test.support.SystemRepositoryResource;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.db.helper.VariousDbTestHelper;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -775,7 +782,7 @@ public class ProcessResidentHandlerTest {
         List<String> appLog = OnMemoryLogWriter.getMessages("writer.appLog");
         for (String log : appLog) {
             System.out.println("log = " + log);
-            assertThat(log, is(not(StringMatcher.startsWith("WARN"))));
+            assertThat(log, is(not(Matchers.startsWith("WARN"))));
         }
     }
 
@@ -884,7 +891,7 @@ public class ProcessResidentHandlerTest {
         List<String> appLog = OnMemoryLogWriter.getMessages("writer.appLog");
         for (String log : appLog) {
             System.out.println("log = " + log);
-            assertThat(log, is(not(StringMatcher.startsWith("WARN"))));
+            assertThat(log, is(not(Matchers.startsWith("WARN"))));
         }
     }
 
@@ -1131,5 +1138,88 @@ public class ProcessResidentHandlerTest {
     private static void stopProcess() {
         VariousDbTestHelper.setUpTable(new HandlerBatchRequest(ThreadContext.getRequestId(), "リクエスト０１", "1", "1", "1",
                 0L));
+    }
+
+    @SuppressWarnings("unchecked")
+    private class BasicProcessStopHandler implements ProcessStopHandler, Initializable {
+
+        private int checkInterval = 1;
+        private SimpleDbTransactionManager dbTransactionManager;
+        private String tableName;
+        private String requestIdColumnName;
+        private String processHaltColumnName;
+        private String query;
+        private int exitCode = 1;
+        private final ThreadLocal<Integer> count = new ThreadLocal() {
+            @Override
+            protected Integer initialValue() {
+                return Integer.valueOf(0);
+            }
+        };
+
+        public BasicProcessStopHandler() {
+        }
+
+        @Override
+        public Object handle(Object o, ExecutionContext context) {
+            int nowCount = count.get();
+            if (nowCount++ % checkInterval == 0) {
+                if (isProcessStop(ThreadContext.getRequestId())) {
+                    throw new ProcessStop(exitCode);
+                }
+                nowCount = 1;
+            }
+            count.set(nowCount);
+            return context.handleNext(o);
+        }
+
+        @Override
+        public boolean isProcessStop(final String requestId) {
+            return (Boolean) (new SimpleDbTransactionExecutor(dbTransactionManager) {
+                public Boolean execute(AppDbConnection connection) {
+                    SqlPStatement statement = connection.prepareStatement(query);
+                    statement.setString(1, requestId);
+                    statement.setString(2, "1");
+                    SqlResultSet retrieve = statement.retrieve();
+                    return !retrieve.isEmpty();
+                }
+            }).doTransaction();
+        }
+
+        @Override
+        public void setCheckInterval(int checkInterval) {
+            this.checkInterval = checkInterval <= 0 ? 1 : checkInterval;
+        }
+
+        @Override
+        public void initialize() {
+            String query = "SELECT " + requestIdColumnName + " FROM " + tableName + " WHERE " + requestIdColumnName + " = ?" + " AND " + processHaltColumnName + " = ?";
+            this.query = query;
+        }
+
+        @Override
+        public void setExitCode(int exitCode) {
+            if (exitCode > 0 && exitCode < 256) {
+                this.exitCode = exitCode;
+            } else {
+                throw new IllegalArgumentException("exit code was invalid range. please set it in the range of 255 from 1. specified value was:" + exitCode);
+            }
+        }
+
+        public void setDbTransactionManager(SimpleDbTransactionManager dbTransactionManager) {
+            this.dbTransactionManager = dbTransactionManager;
+        }
+
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public void setRequestIdColumnName(String requestIdColumnName) {
+            this.requestIdColumnName = requestIdColumnName;
+        }
+
+        public void setProcessHaltColumnName(String processHaltColumnName) {
+            this.processHaltColumnName = processHaltColumnName;
+        }
     }
 }

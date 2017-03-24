@@ -3,16 +3,18 @@ package nablarch.fw.batch.sample;
 import nablarch.core.db.connection.AppDbConnection;
 import nablarch.core.db.connection.DbConnectionContext;
 import nablarch.core.db.statement.SqlPStatement;
+
 import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.action.BatchAction;
 import nablarch.reader.StandardInputRecordReader;
 import nablarch.test.support.tool.Hereis;
 
 import java.util.List;
 
-public class RegisteringBookDataTask extends BatchAction<List<String>> {
+public class RegisteringBookDataTask implements DataReaderFactory<List<String>>, Handler<List<String>, Result> {
 
     public DataReader<List<String>> createReader(ExecutionContext ctx) {
         return new StandardInputRecordReader()

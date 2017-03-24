@@ -8,7 +8,6 @@ import nablarch.fw.handler.retry.CountingRetryContextFactory;
 import nablarch.fw.handler.retry.RetryableException;
 import nablarch.fw.handler.retry.TimeRetryContextFactory;
 import nablarch.fw.launcher.ProcessAbnormalEnd;
-import nablarch.fw.reader.DatabaseRecordReader;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -413,6 +412,23 @@ public class RetryHandlerTest {
                 throw new RuntimeException(e);
             }
             return new Result.Success("成功[" + count + "]回目の実行");
+        }
+    }
+
+    private static class DatabaseRecordReader implements DataReader<SqlRow> {
+        @Override
+        public SqlRow read(ExecutionContext ctx) {
+            return null;
+        }
+
+        @Override
+        public boolean hasNext(ExecutionContext ctx) {
+            return false;
+        }
+
+        @Override
+        public void close(ExecutionContext ctx) {
+            // nop
         }
     }
 }

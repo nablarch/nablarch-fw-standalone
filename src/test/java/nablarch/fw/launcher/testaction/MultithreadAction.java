@@ -1,9 +1,12 @@
 package nablarch.fw.launcher.testaction;
 
+
+
 import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.action.BatchAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,7 @@ import java.util.List;
  *
  * @author shohei ukawa
  */
-public class MultithreadAction extends BatchAction<Integer> {
+public class MultithreadAction implements DataReaderFactory<Integer>, Handler<Integer, Result> {
 
     final static int KEY_NUM = 100000;
 

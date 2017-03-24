@@ -1,9 +1,12 @@
 package nablarch.fw.launcher.testaction;
 
+
+
 import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.action.BatchAction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,7 @@ import java.util.List;
  *
  * @author hisaaki sioiri
  */
-public class AbnormalEndAction2 extends BatchAction<String> {
+public class AbnormalEndAction2 implements DataReaderFactory<String>, Handler<String, Result> {
 
     @Override
     public Result handle(String inputData, ExecutionContext ctx) {

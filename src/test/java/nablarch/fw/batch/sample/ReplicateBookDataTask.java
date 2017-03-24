@@ -5,16 +5,20 @@ import nablarch.core.db.connection.AppDbConnection;
 import nablarch.core.db.connection.DbConnectionContext;
 import nablarch.core.db.statement.SqlPStatement;
 import nablarch.core.db.statement.SqlRow;
+
 import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.action.BatchAction;
+import nablarch.fw.handler.ExecutionHandlerCallback;
 import nablarch.fw.launcher.CommandLine;
-import nablarch.fw.reader.DatabaseRecordReader;
 import nablarch.fw.results.BadRequest;
 import nablarch.fw.results.Conflicted;
 
-public class ReplicateBookDataTask extends BatchAction<SqlRow> {
+import java.util.Iterator;
+
+public class ReplicateBookDataTask implements DataReaderFactory<SqlRow>, ExecutionHandlerCallback<CommandLine, Result>, Handler<SqlRow, Result> {
 
     /**
      * バックアップ元テーブルからレコードを1行づつ読み込む。
@@ -59,27 +63,83 @@ public class ReplicateBookDataTask extends BatchAction<SqlRow> {
         return new Result.Success();
     }
 
+    private static CommandLine command = null;
 
     @Override
-    protected void initialize(CommandLine cmd, ExecutionContext context) {
-        command = cmd;
+    public void preExecution(CommandLine commandLine, ExecutionContext context) {
+        command = commandLine;
         if (command.getParamMap()
                 .containsKey("errorOnInit") && Boolean.valueOf(command.getParam("errorOnInit"))) {
             throw new BadRequest("error on init");
         }
-        super.initialize(command, context);
     }
 
-    private static CommandLine command = null;
-
+    @Override
+    public void errorInExecution(Throwable error, ExecutionContext context) {
+        // nop
+    }
 
     @Override
-    protected void terminate(Result result, ExecutionContext context) {
+    public void postExecution(Result result, ExecutionContext context) {
         if (command.getParamMap()
                 .containsKey("errorOnEnd") && Boolean.valueOf(command.getParam("errorOnEnd"))) {
             throw new Conflicted("error on end");
         }
-        super.terminate(result, context);
     }
 
+    /**
+     * データベースの参照結果を1レコードづつ読み込むデータリーダ。
+     */
+    private static class DatabaseRecordReader implements DataReader<SqlRow> {
+
+        /** 参照結果レコードのイテレータ */
+        private Iterator<SqlRow> records;
+
+        /** テーブル参照用SQLステートメント */
+        private SqlPStatement statement;
+
+        @Override
+        public synchronized SqlRow read(ExecutionContext ctx) {
+            if (records == null) {
+                readRecords();
+            }
+            return records.hasNext() ? records.next() : null;
+        }
+
+        @Override
+        public synchronized boolean hasNext(ExecutionContext ctx) {
+            if (records == null) {
+                readRecords();
+            }
+            return records.hasNext();
+        }
+
+        @Override
+        public synchronized void close(ExecutionContext ctx) {
+            if (statement != null) {
+                statement.close();
+            }
+        }
+
+        /**
+         * テーブルを参照するSQLステートメントを設定する。
+         *
+         * @param statement SQLステートメント
+         * @return このオブジェクト自体
+         */
+        public synchronized DatabaseRecordReader setStatement(SqlPStatement statement) {
+            this.statement = statement;
+            return this;
+        }
+
+        /**
+         * 参照結果のイテレータをキャッシュする。
+         */
+        @SuppressWarnings("unchecked")
+        private void readRecords() {
+            if (statement != null) {
+                records = statement.executeQuery().iterator();
+            }
+        }
+    }
 }

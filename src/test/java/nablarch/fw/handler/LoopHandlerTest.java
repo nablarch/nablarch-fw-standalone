@@ -10,7 +10,6 @@ import nablarch.core.db.transaction.JdbcTransactionFactory;
 import nablarch.core.log.app.BasicCommitLogger;
 
 import nablarch.core.log.app.CommitLogger;
-import nablarch.core.log.basic.LogWriterSupport;
 import nablarch.core.transaction.Transaction;
 import nablarch.core.transaction.TransactionContext;
 import nablarch.core.transaction.TransactionFactory;
@@ -20,21 +19,25 @@ import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
 import nablarch.fw.Result.Success;
-import nablarch.fw.reader.ResumeDataReader;
 import nablarch.test.support.SystemRepositoryResource;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.db.helper.VariousDbTestHelper;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -129,11 +132,7 @@ public class LoopHandlerTest {
                 new ActionHandler(transactionName), transactionName);
 
         ExecutionContext context = new ExecutionContext();
-        context.setDataReader(
-            (transactionName == null)
-                ? new ResumeDataReader<String>().setSourceReader(createReader(recordCount))
-                : createReader(recordCount) //どういうわけかResumeDataReaderは複数トランザクションで使用することができない仕様になっている。
-        );
+        context.setDataReader(createReader(recordCount));
         context.setHandlerQueue(handlers);
         BasicCommitLogger logger = new BasicCommitLogger();
         logger.setInterval(10);
@@ -230,13 +229,13 @@ public class LoopHandlerTest {
                 5, new RuntimeException("runtime error")));
         ExecutionContext context = new ExecutionContext();
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(6)));
+        context.setDataReader(createReader(6));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (RuntimeException e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString("runtime"));
+            assertThat(e.getMessage(), Matchers.containsString("runtime"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
         }
@@ -258,13 +257,13 @@ public class LoopHandlerTest {
                 new ErrorActionHandler(13, new Error("error")));
         ExecutionContext context = new ExecutionContext();
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(15)));
+        context.setDataReader(createReader(15));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (Error e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString("error"));
+            assertThat(e.getMessage(), Matchers.containsString("error"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
         }
@@ -289,13 +288,13 @@ public class LoopHandlerTest {
                 "rollback error"));
         ExecutionContext context = new ExecutionContext();
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(15)));
+        context.setDataReader(createReader(15));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (RuntimeException e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString(
+            assertThat(e.getMessage(), Matchers.containsString(
                     "rollback error"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
@@ -320,13 +319,13 @@ public class LoopHandlerTest {
                         "action error")), new Error("rollback error!!!"));
         ExecutionContext context = new ExecutionContext();
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(15)));
+        context.setDataReader(createReader(15));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (Error e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString(
+            assertThat(e.getMessage(), Matchers.containsString(
                     "rollback error!!!"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
@@ -353,13 +352,13 @@ public class LoopHandlerTest {
         ExecutionContext context = new ExecutionContext();
 
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(15)));
+        context.setDataReader(createReader(15));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (RuntimeException e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString("null"));
+            assertThat(e.getMessage(), Matchers.containsString("null"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
         }
@@ -383,13 +382,13 @@ public class LoopHandlerTest {
                         "out of memory error")), new Error("error!!!!"));
         ExecutionContext context = new ExecutionContext();
         context.setHandlerQueue(handlers);
-        context.setDataReader(new ResumeDataReader<String>().setSourceReader(createReader(15)));
+        context.setDataReader(createReader(15));
 
         try {
             context.handleNext(null);
             fail("");
         } catch (Error e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString(
+            assertThat(e.getMessage(), Matchers.containsString(
                     "error!!!!"));
             assertNotNull("例外発生時は最後に読み込んだデータオブジェクトが残っていること。",
                     context.getLastReadData());
@@ -481,12 +480,6 @@ public class LoopHandlerTest {
         // 件数の確認
         List<HandlerTestTable> allData = VariousDbTestHelper.findAll(HandlerTestTable.class);
         assertThat(allData.size(), is(recordCount));
-
-        // レジュームポイントの確認
-        if (context.getDataReader() instanceof ResumeDataReader) {
-        	HandlerBatchRequest result = VariousDbTestHelper.findById(HandlerBatchRequest.class, "RW000000");
-            assertThat(result.resumePoint.intValue(), is(recordCount));
-        }
 
         while (reader.hasNext(context)) {
             String record = reader.read(context);

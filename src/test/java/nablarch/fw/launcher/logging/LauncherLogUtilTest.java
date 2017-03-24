@@ -14,13 +14,16 @@ import nablarch.fw.launcher.CommandLine;
 
 import nablarch.fw.launcher.logging.LauncherLogFormatter;
 import nablarch.fw.launcher.logging.LauncherLogUtil;
-import nablarch.test.IgnoringLS;
 
+import org.hamcrest.text.IsEqualIgnoringWhiteSpace;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.text.IsEqualIgnoringWhiteSpace.equalToIgnoringWhiteSpace;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -129,30 +132,25 @@ public class LauncherLogUtilTest extends LogTestSupport {
         assertThat(matcher.group(3), is("\tcommand line options = {"));
 
         String commandLineOpts = matcher.group(5);
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\tdiConfig = [" + diConfig + "]"));
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\tuserId = [" + userId + "]"));
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\trequestPath = [" + requestPath + "]"));
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\tparam1 = [param1]"));
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\tparam2 = [param2]"));
-        assertThat(commandLineOpts, IgnoringLS.contains(
-                "\t\tparam3 = [param3]"));
+        assertThat(commandLineOpts, allOf(
+                containsString("\t\tdiConfig = [" + diConfig + "]"),
+                containsString("\t\tuserId = [" + userId + "]"),
+                containsString("\t\trequestPath = [" + requestPath + "]"),
+                containsString("\t\tparam1 = [param1]"),
+                containsString("\t\tparam2 = [param2]"),
+                containsString("\t\tparam3 = [param3]")));
 
         // コマンドライン引数
-        assertThat(matcher.group(9), IgnoringLS.contains(
+        assertThat(matcher.group(9), containsString(
                 "\tcommand line arguments = {"));
 
         String commandLinArgs = matcher.group(11);
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t01 = [h]"));
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t02 = [o]"));
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t03 = [g]"));
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t04 = [e]"));
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t05 = [hoge]"));
-        assertThat(commandLinArgs, IgnoringLS.contains("\t\t06 = [fuga]"));
+        assertThat(commandLinArgs, containsString("\t\t01 = [h]"));
+        assertThat(commandLinArgs, containsString("\t\t02 = [o]"));
+        assertThat(commandLinArgs, containsString("\t\t03 = [g]"));
+        assertThat(commandLinArgs, containsString("\t\t04 = [e]"));
+        assertThat(commandLinArgs, containsString("\t\t05 = [hoge]"));
+        assertThat(commandLinArgs, containsString("\t\t06 = [fuga]"));
     }
 
     /**
@@ -185,7 +183,7 @@ public class LauncherLogUtilTest extends LogTestSupport {
         System.out.println(
                 "==================== actual log ====================\n" + log);
 
-        assertThat(log, IgnoringLS.equals(
+        assertThat(log, equalToIgnoringWhiteSpace(
                 "@@@@ BEGIN @@@@\n\t" + "command line arguments"
                         + " = [\n\t\t01 = [h]\n\t\t02 = [o]\n\t\t03 = [g]\n\t\t04 = [e]]"));
     }
