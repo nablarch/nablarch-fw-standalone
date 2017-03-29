@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <import file="db-default.xml" />
+  
+  <component name="dbConnectionManagementHandler" class="nablarch.common.handler.DbConnectionManagementHandler">
+    <property name="connectionFactory" ref="connectionFactory" />
+  </component>
+
+</component-configuration>
