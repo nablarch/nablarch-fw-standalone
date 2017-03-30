@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component-configuration
   xmlns = "http://tis.co.jp/nablarch/component-configuration">
-
+  
   <!-- データベース接続構成 -->
   <import file="db-default.xml"/>
   
   <!-- ハンドラーキュー構成 -->
   <list name="handlerQueue">
+    <!-- バッチ終了コード指定ハンドラ -->
+    <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
+  
     <!-- 共通エラーハンドラー -->
     <component class="nablarch.fw.handler.GlobalErrorHandler" />
       
@@ -31,24 +34,27 @@
       </property>
     </component>
     
+    <!-- データベース接続管理ハンドラ(データベースリーダ用) -->
+    <component class="nablarch.common.handler.DbConnectionManagementHandler" />
+
     <!-- 業務アクションディスパッチハンドラ -->
     <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
       <property name="basePackage" value="nablarch.fw.batch.sample"/>
       <property name="immediate" value="false" />
     </component>
-     
-    <!-- マルチスレッド制御ハンドラ -->
-    <component class="nablarch.fw.handler.MultiThreadExecutionHandler" />
     
-    <!-- データベース接続管理ハンドラ -->
-    <component
-        name="dbConnectionManagementHandler" 
-        class="nablarch.common.handler.DbConnectionManagementHandler">
+    <!-- マルチスレッド実行制御ハンドラ -->
+    <component class="nablarch.fw.handler.MultiThreadExecutionHandler">
+      <property name="concurrentNumber" value="3" />
+      <property name="terminationTimeout" value="600" />
     </component>
+    
+    <!-- データベース接続管理ハンドラ(業務処理用) -->
+    <component class="nablarch.common.handler.DbConnectionManagementHandler" />
     
     <!-- ループハンドラ -->
     <component class="nablarch.fw.handler.LoopHandler" />
-
+    
     <!-- データリードハンドラ -->
     <component class="nablarch.fw.handler.DataReadHandler">
       <property name="maxCount" value="${maxExecutionCount}"/>

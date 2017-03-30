@@ -1,10 +1,17 @@
 package nablarch.fw.batch.sample;
 
-import nablarch.core.db.statement.ParameterizedSqlPStatement;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import nablarch.core.db.statement.SqlPStatement;
 import nablarch.core.db.statement.SqlRow;
 import nablarch.core.db.support.DbAccessSupport;
-
 import nablarch.fw.DataReader;
 import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
@@ -14,16 +21,6 @@ import nablarch.fw.Result;
 import nablarch.fw.TransactionEventCallback;
 import nablarch.fw.handler.ExecutionHandlerCallback;
 import nablarch.fw.launcher.CommandLine;
-
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 
 public class TestActionWithCallback extends DbAccessSupport implements DataReaderFactory<SqlRow>, ExecutionHandlerCallback<CommandLine, Result>, TransactionEventCallback<SqlRow>, Handler<SqlRow, Result> {
