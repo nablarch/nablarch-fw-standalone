@@ -6,7 +6,9 @@ import nablarch.test.support.tool.Hereis;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
 import java.io.BufferedReader;
@@ -20,6 +22,9 @@ import static org.junit.Assert.*;
 
 @RunWith(DatabaseTestRunner.class)
 public class LaunchMainFromShellTest{
+    
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -36,7 +41,7 @@ public class LaunchMainFromShellTest{
     @Ignore
     @Test(timeout=300000)
     public void testLaunchATinyBatch() throws Exception {
-        File diConfig = Hereis.file("./batch-config.xml");
+        File diConfig = Hereis.file(new File(temporaryFolder.getRoot(), "./batch-config.xml").getAbsolutePath());
         /***********************************************************************
         <?xml version="1.0" encoding="UTF-8"?>
         <component-configuration
@@ -105,14 +110,15 @@ public class LaunchMainFromShellTest{
           <!-- ハンドラーキュー構成(END) -->
         </component-configuration>
         ************************************************************************/
-        
-        Process job = Hereis.shell(null);
+
+        final String configFilePath = diConfig.getAbsolutePath();
+        Process job = Hereis.shell(null, configFilePath);
         /*******************************************************************
           echo hoge fuga piyo
         | java
             -DmaxExecutionCount=100000
              nablarch.fw.launcher.Main
-            -diConfig    file:./batch-config.xml
+            -diConfig    file:${configFilePath}
             -requestPath DuplicateLineTask/req00001
             -userId      superHacker001
         ********************************************************************/
@@ -146,7 +152,7 @@ public class LaunchMainFromShellTest{
      */
     @Test(timeout=300000)
     public void testFileToDbBatch() throws Exception {
-        File diConfig = Hereis.file("./batch-config.xml");
+        File diConfig = Hereis.file(new File(temporaryFolder.getRoot(), "./batch-config.xml").getAbsolutePath());
         /***********************************************************************
         <?xml version="1.0" encoding="UTF-8"?>
         <component-configuration
@@ -214,13 +220,14 @@ public class LaunchMainFromShellTest{
         Programming with POSIX Threads,  Addison-Wesley,  David R. Butenhof
         HACKING (2nd ed),                no starch press, Jon Erickson
         **************************************************************************/
-        
-        Process job = Hereis.shell(null);
+
+        final String configFilePath = diConfig.getAbsolutePath();
+        Process job = Hereis.shell(null, configFilePath);
         /***********************************************************************
         java 
             -DmaxExecutionCount=100000
              nablarch.fw.launcher.Main
-            -diConfig    file:./batch-config.xml
+            -diConfig    file:${configFilePath}
             -requestPath RegisteringBookDataTask/req9999
             -userId      user7777l
             <    inputData.txt

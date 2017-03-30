@@ -11,20 +11,20 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "ResultData")
 public class ResultData {
-   
+
     public ResultData() {
-    };
+    }
     
     public ResultData(String id, String activity) {
-		this.id = id;
-		this.activity = activity;
-	}
+        this.id = id;
+        this.activity = activity;
+    }
 
-	@Id
+    @Id
     @Column(name = "ID", length = 3, nullable = false)
     public String id;
 
-	@Id
+    @Id
     @Column(name = "ACTIVITY", length = 32, nullable = false)
-	public String activity;
+    public String activity;
 }
