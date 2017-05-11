@@ -124,6 +124,7 @@ public class Main extends HandlerQueueManager<Main>
     public Integer handle(CommandLine commandLine, ExecutionContext context) {
 
         Object result;
+        FailureLogUtil.initialize();
         try {
             initializeLog();
             setupExecutionContext(commandLine, context);
@@ -135,15 +136,15 @@ public class Main extends HandlerQueueManager<Main>
             result = context.handleNext(commandLine);
 
         } catch (Result.Error e) {
-            LOGGER.logFatal("An unexpected exception occurred.", e);
+            FailureLogUtil.logFatal(e, null, null, new Object[0]);
             result = e;
 
         } catch (RuntimeException e) {
-            LOGGER.logFatal("An unexpected exception occurred.", e);
+            FailureLogUtil.logFatal(e, null, null, new Object[0]);
             return UNKNOWN_ERROR;
 
         } catch (Error e) {
-            LOGGER.logFatal("An unexpected exception occurred.", e);
+            FailureLogUtil.logFatal(e, null, null, new Object[0]);
             return UNKNOWN_ERROR;
         }
 
@@ -239,7 +240,6 @@ public class Main extends HandlerQueueManager<Main>
 
     /** 各種ログの初期化を行う。 */
     protected void initializeLog() {
-        FailureLogUtil.initialize();
         PerformanceLogUtil.initialize();
         ApplicationSettingLogUtil.initialize();
         LogInitializationHelper.initialize();
