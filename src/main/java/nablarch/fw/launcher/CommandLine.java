@@ -1,67 +1,40 @@
 package nablarch.fw.launcher;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import nablarch.core.util.Builder;
 import nablarch.core.util.annotation.Published;
 import nablarch.fw.Request;
+import nablarch.fw.launcher.CommandLineParser.Result;
 import nablarch.fw.results.BadRequest;
 
 /**
  * コマンドラインオプション、コマンドライン引数をパースして格納するクラス。
  * <p/>
- * コマンドラインオプション<br/>
- *     オプションの書式は以下となる。
- *     ※「-(ハイフン)」は一つまたは二つ付与する。どちらでも処理に影響しない。
- *     <ul>
- *         <li>-オプション名 値 (例：java -requestPath test.SampleAction/BC001)</li>
- *         <li>--オプション名 値 (例：java --requestPath test.SampleAction/BC001)</li>
- *         <li>-オプション名 (例：java -server)</li>
- *         <li>--オプション名 (例：java --server)</li>
- *     </ul>
- * <p/>
- * コマンドライン引数<br/>
- *     引数の書式は以下となる。
- *     <ul>
- *         <li>値 (例：java someValue)</li>
- *     </ul>
- * <p/>
- * 必須のオプションが含まれていない場合は{@link BadRequest}を送出する。
- * 必須のオプションについては{@link Main}のJavaDocを参照。
  *
  * @author Iwauo Tajima
  * @see Main
+ * @see CommandLineParser
  */
 @Published(tag = "architect")
 public class CommandLine implements Request<String> {
+
     /**
      * デフォルトコンストラクタ
+     *
+     * 与えられたコマンドライン文字列を{@link CommandLineParser}で解析し保持する。
      *
      * @param commandline コマンドライン文字列
      */
     public CommandLine(String... commandline) {
-        opts = new HashMap<String, String>();
-        args = new ArrayList<String>();
 
-        Iterator<String> itr = Arrays.asList(commandline).iterator();
-        while (itr.hasNext()) {
-            String arg = itr.next();
-            String optName = arg.replaceAll("^--?", "");
-            if (optName.length() != arg.length()) {
-                String optValue = itr.hasNext() ? itr.next()
-                        : "";
-                opts.put(optName, optValue);
-            } else {
-                args.add(arg);
-            }
-        }
-
-        validateOptions(opts);
+        final CommandLineParser parser = new CommandLineParser();
+        final Result result = parser.parse(commandline);
+        validateOptions(result.getOpts());
+        opts = result.getOpts();
+        args = result.getArgs();
     }
 
     /**
@@ -117,11 +90,12 @@ public class CommandLine implements Request<String> {
      * リクエストパスを返す。
      * デフォルトでは実行されたコマンドのフルパス文字列を返す。
      */
+    @Override
     public String getRequestPath() {
         return opts.get("requestPath");
     }
 
-    /** {@inheritDoc} */
+    @Override
     public CommandLine setRequestPath(String requestPath) {
         opts.put("requestPath", requestPath.trim());
         return this;
@@ -139,6 +113,7 @@ public class CommandLine implements Request<String> {
      * </pre>
      *
      */
+    @Override
     @Published
     public String getParam(String name) {
         return opts.get(name);
@@ -149,6 +124,7 @@ public class CommandLine implements Request<String> {
      * <p/>
      * コマンドラインオプションのMapを取得する。
      */
+    @Override
     @Published
     public Map<String, String> getParamMap() {
         return opts;
