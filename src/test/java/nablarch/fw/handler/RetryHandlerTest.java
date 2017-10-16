@@ -75,6 +75,7 @@ public class RetryHandlerTest {
         retryContextFactory.setRetryIntervals(500); // 間隔は0.5秒
 
         RetryHandler handler = new RetryHandler();
+        handler.setRetryLimitExceededFailureCode("DUMMY");
         handler.setRetryContextFactory(retryContextFactory);
 
         // 回数内でリトライ成功
@@ -114,6 +115,7 @@ public class RetryHandlerTest {
         retryContextFactory.setRetryIntervals(500);
 
         RetryHandler handler = new RetryHandler();
+        handler.setRetryLimitExceededFailureCode("DUMMY");
         handler.setRetryContextFactory(retryContextFactory);
 
         // 回数内にリトライ成功せず
@@ -134,6 +136,7 @@ public class RetryHandlerTest {
         retryContextFactory.setRetryIntervals(0);
 
         handler = new RetryHandler();
+        handler.setRetryLimitExceededFailureCode("DUMMY");
         handler.setRetryContextFactory(retryContextFactory);
 
         // 回数内にリトライ成功せず
@@ -326,6 +329,7 @@ public class RetryHandlerTest {
         retryContextFactory.setMaxRetryTime(3000); // 最長リトライ時間は3秒
 
         RetryHandler handler = new RetryHandler();
+        handler.setRetryLimitExceededFailureCode("DUMMY");
         handler.setRetryContextFactory(retryContextFactory);
 
         // 回数内でリトライ成功
