@@ -15,6 +15,7 @@ import nablarch.fw.launcher.CommandLine;
 import nablarch.fw.launcher.logging.LauncherLogFormatter;
 import nablarch.fw.launcher.logging.LauncherLogUtil;
 
+import nablarch.fw.mock.MockBusinessDateProvider;
 import org.hamcrest.text.IsEqualIgnoringWhiteSpace;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -37,28 +38,10 @@ public class LauncherLogUtilTest extends LogTestSupport {
     /** テスト用のセットアップ処理 */
     @BeforeClass
     public static void setUpClass() {
-        final BusinessDateProvider provider = new BusinessDateProvider() {
-            public String getDate() {
-                return "20111201";
-            }
-
-            public String getDate(String segment) {
-                throw new UnsupportedOperationException("");
-            }
-
-            public Map<String, String> getAllDate() {
-                throw new UnsupportedOperationException("");
-            }
-
-            public void setDate(String segment, String date) {
-                throw new UnsupportedOperationException("");
-            }
-        };
-
         SystemRepository.load(new ObjectLoader() {
             public Map<String, Object> load() {
                 Map<String, Object> loadData = new HashMap<String, Object>();
-                loadData.put("businessDateProvider", provider);
+                loadData.put("businessDateProvider", new MockBusinessDateProvider());
                 loadData.put("file.encoding", "utf-8");
                 loadData.put("threadCount", "1000");
                 loadData.put("key1", "name1");
