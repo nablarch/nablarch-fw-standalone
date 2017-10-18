@@ -20,6 +20,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+@Ignore("CI環境でjavaのプロセスを起動できないため")
 @RunWith(DatabaseTestRunner.class)
 public class LaunchMainFromShellTest{
     
