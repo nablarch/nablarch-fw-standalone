@@ -16,6 +16,7 @@ import nablarch.test.support.tool.Hereis;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -28,6 +29,7 @@ import org.junit.runner.RunWith;
  * @author Iwauo Tajima
  * @see TestActionWithCallback テスト用アクションクラス
  */
+@Ignore("CI環境でjavaのプロセスを起動できないため")
 @RunWith(DatabaseTestRunner.class)
 public class LaunchFullSpecBatchFromShellTest {
 

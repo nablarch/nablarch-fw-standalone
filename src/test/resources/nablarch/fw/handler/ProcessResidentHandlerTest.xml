@@ -13,6 +13,7 @@
         <property name="retryCount" value="20" />
       </component>
     </property>
+    <property name="retryLimitExceededFailureCode" value="99"/>
   </component>
 
   <!-- 常駐化ハンドラ(デフォルト設定) -->

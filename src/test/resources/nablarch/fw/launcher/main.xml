@@ -6,6 +6,10 @@
 
   <import file="db-default.xml" />
 
+  <component name="businessDateProvider" class="nablarch.fw.mock.MockBusinessDateProvider">
+    <property name="date" value="20170101"/>
+  </component>
+
   <list name="handlerQueue">
     <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
     <component class="nablarch.fw.handler.GlobalErrorHandler" />

@@ -796,6 +796,7 @@ public class ProcessResidentHandlerTest {
         retryContextFactory.setRetryCount(10);
         retryContextFactory.setRetryIntervals(10);
         retryHandler.setRetryContextFactory(retryContextFactory);
+        retryHandler.setRetryLimitExceededFailureCode("DUMMY");
         handlers.add(retryHandler);
 
         // デフォルト設定の常駐化ハンドラを設定
@@ -909,6 +910,7 @@ public class ProcessResidentHandlerTest {
         retryContextFactory.setRetryCount(3);
         retryContextFactory.setRetryIntervals(10);
         retryHandler.setRetryContextFactory(retryContextFactory);
+        retryHandler.setRetryLimitExceededFailureCode("DUMMY");
         handlers.add(retryHandler);
 
         // デフォルト設定の常駐化ハンドラを設定
