@@ -16,7 +16,7 @@ public class StandaloneExecutionContextTest {
      * StandaloneExecutionContextがコピーできることを確認する。
      */
     @Test
-    public void copy() {
+    public void testCopy() {
         ExecutionContext orgCtx = new StandaloneExecutionContext();
         //テスト用のダミー実装をおこなったdataReader
         final DataReader<Object> dataReader = new DataReader<Object>() {
@@ -46,10 +46,11 @@ public class StandaloneExecutionContextTest {
         });
 
         ExecutionContext newCtx = orgCtx.copy();
-        assertThat(newCtx instanceof StandaloneExecutionContext, is(true));
+        assertEquals(newCtx.getClass(), StandaloneExecutionContext.class);
         assertThat(newCtx.getHandlerQueue(), is(orgCtx.getHandlerQueue()));
-        assertThat(newCtx.getSessionScopeMap(), is(orgCtx.getRequestScopeMap()));
+        assertThat(newCtx.getSessionScopeMap(), is(orgCtx.getSessionScopeMap()));
         assertThat(newCtx.getMethodBinder(), is(orgCtx.getMethodBinder()));
+        assertThat(orgCtx.getRequestScopeMap().isEmpty(), is(true));
         //requestScopeMapについては、新規オブジェクトが生成されているはず。空であることを確認する。
         assertThat(newCtx.getRequestScopeMap().isEmpty(), is(true));
         //readerFactoryの確認（dataReaderが同一であれば、readerFactoryも同一である）
