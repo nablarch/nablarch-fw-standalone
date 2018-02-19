@@ -31,6 +31,9 @@ public class StandaloneExecutionContext extends ExecutionContext {
 
     /***
      * 自身の複製を返す。
+     * <p/>
+     * 複製するオブジェクトの型は、自身とまったく同一の型である。
+     *
      * @return 自身の複製
      */
     public StandaloneExecutionContext copy(){
