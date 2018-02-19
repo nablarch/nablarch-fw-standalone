@@ -326,7 +326,7 @@ implements ExecutionHandler<Object, MultiStatus, MultiThreadExecutionHandler> {
      */
     private Callable<Result> createTaskFor(final Object data,
                                            final ExecutionContext context) {
-        final ExecutionContext clonedContext = new ExecutionContext(context);
+        final ExecutionContext clonedContext = context.copy();
         return new Callable<Result>() {
             @Override
             public Result call() throws Exception {
