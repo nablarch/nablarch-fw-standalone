@@ -21,6 +21,21 @@ public class StandaloneExecutionContext extends ExecutionContext {
     }
 
     /**
+     * 元となる実行コンテキストから、新たな実行コンテキストのオブジェクトを作成する。
+     * コピーの仕様は、{@link ExecutionContext}に準じる。
+     * @param original 元となる実行コンテキスト
+     */
+    public StandaloneExecutionContext(StandaloneExecutionContext original) {
+        super(original);
+    }
+
+    @Override
+    protected StandaloneExecutionContext copyInternal() {
+        return new StandaloneExecutionContext(this);
+    }
+
+
+    /**
      * @deprecated セッションストアは使用できません。代わりにセッションスコープを使用してください。
      * {@link #getSessionScopeMap()}
      */
