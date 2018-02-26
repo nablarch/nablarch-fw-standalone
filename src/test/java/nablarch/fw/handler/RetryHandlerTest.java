@@ -1,19 +1,26 @@
 package nablarch.fw.handler;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.sql.SQLException;
+
 import nablarch.common.handler.threadcontext.ThreadContextHandler;
 import nablarch.core.db.connection.exception.DbConnectionException;
 import nablarch.core.db.statement.SqlRow;
-import nablarch.fw.*;
+import nablarch.fw.DataReader;
+import nablarch.fw.DataReaderFactory;
+import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
+import nablarch.fw.Result;
 import nablarch.fw.handler.retry.CountingRetryContextFactory;
 import nablarch.fw.handler.retry.RetryableException;
 import nablarch.fw.handler.retry.TimeRetryContextFactory;
 import nablarch.fw.launcher.ProcessAbnormalEnd;
+
 import org.junit.Test;
-
-import java.sql.SQLException;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
 
 /**
  * {@link RetryHandler}のテスト。
@@ -335,13 +342,28 @@ public class RetryHandlerTest {
         // 回数内でリトライ成功
         // 成功処理で最長リトライ時間を超える場合
         MockHandlerForReset nextHandler = new MockHandlerForReset(6, 3, 700); // 6回目の実行で成功
+        
+        class TestExecutionContext extends ExecutionContext {
+
+            public TestExecutionContext() {
+            }
+
+            public TestExecutionContext(final TestExecutionContext original) {
+                super(original);
+            }
+
+            @Override
+            protected ExecutionContext copyInternal() {
+                return new TestExecutionContext(this);
+            }
+
+            @Override
+            public boolean hasNextData() {
+                return true;
+            }
+        }
         try {
-            handler.handle("test_data", new ExecutionContext() {
-                                            @Override
-                                            public boolean hasNextData() {
-                                                return true;
-                                            }
-                                        }
+            handler.handle("test_data", new TestExecutionContext()
                                         .addHandler(new RequestThreadLoopHandler())
                                         .addHandler(new ThreadContextHandler())
                                         .addHandler(nextHandler));
@@ -354,12 +376,7 @@ public class RetryHandlerTest {
         // 最後までリトライ対象の例外
         nextHandler = new MockHandlerForReset(7, 3, 0); // 7回目の実行で成功
         try {
-            handler.handle("test_data", new ExecutionContext() {
-                                            @Override
-                                            public boolean hasNextData() {
-                                                return true;
-                                            }
-                                        }
+            handler.handle("test_data", new TestExecutionContext()
                                         .addHandler(new RequestThreadLoopHandler())
                                         .addHandler(new ThreadContextHandler())
                                         .addHandler(nextHandler));
