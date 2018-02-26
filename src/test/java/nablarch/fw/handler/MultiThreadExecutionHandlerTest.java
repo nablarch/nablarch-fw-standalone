@@ -1,5 +1,25 @@
 package nablarch.fw.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
+
+import org.hamcrest.CoreMatchers;
+
 import nablarch.common.handler.DbConnectionManagementHandler;
 import nablarch.core.db.connection.ConnectionFactory;
 import nablarch.core.transaction.TransactionFactory;
@@ -8,20 +28,14 @@ import nablarch.fw.DataReaderFactory;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
+import nablarch.fw.StandaloneExecutionContext;
 import nablarch.fw.launcher.CommandLine;
 import nablarch.test.support.SystemRepositoryResource;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
-
-import static org.junit.Assert.*;
 
 public class MultiThreadExecutionHandlerTest {
 
@@ -924,6 +938,39 @@ public class MultiThreadExecutionHandlerTest {
 
     }
 
+    @Test
+    public void 後続のハンドラにはこのハンドラのインプットとなるExecutionContextのコピーが渡されること() {
+
+        final StandaloneExecutionContext originalContext = new StandaloneExecutionContext();
+        originalContext.setDataReader(new DataReader<Object>() {
+            @Override
+            public Object read(final ExecutionContext ctx) {
+                return null;
+            }
+
+            @Override
+            public boolean hasNext(final ExecutionContext ctx) {
+                return false;
+            }
+
+            @Override
+            public void close(final ExecutionContext ctx) {
+
+            }
+        });
+        
+        originalContext.addHandler(new Handler<Object, Object>() {
+            @Override
+            public Object handle(final Object o, final ExecutionContext context) {
+                assertThat("MultiThreadExecutionHandlerに指定したExecutionContextと同じクラスが後続のハンドラに渡されること",
+                        context, CoreMatchers.<ExecutionContext>instanceOf(originalContext.getClass()));
+                return new Result.Success();
+            }
+        });
+
+        final MultiThreadExecutionHandler sut = new MultiThreadExecutionHandler();
+        sut.handle(null, originalContext);
+    }
 
     private ExecutionContext createExecutionContext() {
         return new ExecutionContext()
