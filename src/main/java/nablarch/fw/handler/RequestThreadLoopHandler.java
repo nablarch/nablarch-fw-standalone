@@ -6,12 +6,12 @@ import nablarch.core.log.app.FailureLogUtil;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
-import nablarch.fw.results.ServiceError;
-import nablarch.fw.results.ServiceUnavailable;
 import nablarch.fw.handler.ProcessStopHandler.ProcessStop;
 import nablarch.fw.handler.retry.RetryUtil;
 import nablarch.fw.handler.retry.RetryableException;
 import nablarch.fw.launcher.ProcessAbnormalEnd;
+import nablarch.fw.results.ServiceError;
+import nablarch.fw.results.ServiceUnavailable;
 
 /**
  * 各サブスレッド上のループ毎にリクエスト処理を実行するハンドラ。
@@ -44,7 +44,7 @@ public class RequestThreadLoopHandler implements Handler<Object, Object> {
         Result result = null;
         while (ctx.hasNextData()) {
             try {
-                ExecutionContext clonedCtx = new ExecutionContext(ctx);
+                ExecutionContext clonedCtx = ctx.copy();
                 result = clonedCtx.handleNext(data);
                 
             // サービス閉局エラー発生時:
