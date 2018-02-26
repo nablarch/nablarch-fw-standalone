@@ -1,24 +1,32 @@
 package nablarch.fw.handler;
 
 
-import nablarch.fw.DataReader;
-import nablarch.fw.ExecutionContext;
-import nablarch.fw.Handler;
-import nablarch.fw.Result;
-import nablarch.fw.handler.retry.RetryableException;
-import nablarch.fw.results.ServiceUnavailable;
-import nablarch.test.support.log.app.OnMemoryLogWriter;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import org.hamcrest.CoreMatchers;
+
+import nablarch.fw.DataReader;
+import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
+import nablarch.fw.Result;
+import nablarch.fw.StandaloneExecutionContext;
+import nablarch.fw.handler.retry.RetryableException;
+import nablarch.fw.results.ServiceUnavailable;
+import nablarch.test.support.log.app.OnMemoryLogWriter;
+
+import org.junit.Test;
 
 /**
  * {@link RequestThreadLoopHandler}のテスト。
+ *
  * @author Kiyohito Itoh
  */
 public class RequestThreadLoopHandlerTest {
@@ -290,6 +298,33 @@ public class RequestThreadLoopHandlerTest {
         String log = OnMemoryLogWriter.getMessages("writer.appLog").get(0);
         assertTrue(log.contains("FATAL"));
         assertTrue(log.contains("test_testError"));
+    }
+
+    @Test
+    public void 後続のハンドラにはこのハンドラのインプットとなるExecutionContextのコピーが渡されること() {
+        final RequestThreadLoopHandler sut = new RequestThreadLoopHandler();
+
+        final StandaloneExecutionContext originalContext = new StandaloneExecutionContext();
+        originalContext.setDataReader(new TestDataReader(createReadData(1)));
+        originalContext.setSessionScopedVar("session", "session_value");
+        originalContext.setRequestScopedVar("request", "request_value");
+
+        originalContext.addHandler(new DataReadHandler());
+        originalContext.addHandler(new Handler<Object, Object>() {
+            @Override
+            public Object handle(final Object o, final ExecutionContext context) {
+                assertThat("sessionスコープの情報が引き継がれること", context.getSessionScopedVar("session"),
+                        CoreMatchers.<Object>is("session_value"));
+                assertThat("リクエストスコープの情報は引き継がれないこと", context.getRequestScopedVar("request"), is(nullValue()));
+                assertThat("ExecutionContextの実態が変わらないこと", context,
+                        CoreMatchers.<ExecutionContext>instanceOf(originalContext.getClass()));
+                assertThat("コピーを作るので実態が変わること", context,
+                        not(CoreMatchers.<ExecutionContext>sameInstance(originalContext)));
+                return new Result.Success();
+            }
+        });
+
+        sut.handle(null, originalContext);
     }
 
     /** テスト用のデータを作成する。 */
