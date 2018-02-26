@@ -302,28 +302,21 @@ public class RequestThreadLoopHandlerTest {
 
     @Test
     public void 後続のハンドラにはこのハンドラのインプットとなるExecutionContextのコピーが渡されること() {
-        final RequestThreadLoopHandler sut = new RequestThreadLoopHandler();
 
         final StandaloneExecutionContext originalContext = new StandaloneExecutionContext();
         originalContext.setDataReader(new TestDataReader(createReadData(1)));
-        originalContext.setSessionScopedVar("session", "session_value");
-        originalContext.setRequestScopedVar("request", "request_value");
 
         originalContext.addHandler(new DataReadHandler());
         originalContext.addHandler(new Handler<Object, Object>() {
             @Override
             public Object handle(final Object o, final ExecutionContext context) {
-                assertThat("sessionスコープの情報が引き継がれること", context.getSessionScopedVar("session"),
-                        CoreMatchers.<Object>is("session_value"));
-                assertThat("リクエストスコープの情報は引き継がれないこと", context.getRequestScopedVar("request"), is(nullValue()));
-                assertThat("ExecutionContextの実態が変わらないこと", context,
-                        CoreMatchers.<ExecutionContext>instanceOf(originalContext.getClass()));
-                assertThat("コピーを作るので実態が変わること", context,
-                        not(CoreMatchers.<ExecutionContext>sameInstance(originalContext)));
+                assertThat("RequestThreadLoopHandlerに指定したExecutionContextと同じクラスが後続のハンドラに渡されること",
+                        context, CoreMatchers.<ExecutionContext>instanceOf(originalContext.getClass()));
                 return new Result.Success();
             }
         });
 
+        final RequestThreadLoopHandler sut = new RequestThreadLoopHandler();
         sut.handle(null, originalContext);
     }
 
