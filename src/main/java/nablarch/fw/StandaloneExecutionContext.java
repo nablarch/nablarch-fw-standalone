@@ -36,41 +36,41 @@ public class StandaloneExecutionContext extends ExecutionContext {
 
 
     /**
-     * @deprecated セッションストアは使用できません。代わりにセッションスコープを使用してください。
-     * {@link #getSessionScopeMap()}
+     * 本メソッドは利用できない。
+     * 
+     * 呼び出した場合、{@link UnsupportedOperationException}を送出する。
      */
     @Override
-    @Deprecated
     public Map<String, Object> getSessionStoreMap() {
         throw new UnsupportedOperationException("Please use \"sessionScope\" instead of \"sessionStore\".");
     }
 
     /**
-     * @deprecated セッションストアは使用できません。代わりにセッションスコープを使用してください。
-     * {@link #setSessionScopeMap(Map)}
+     * 本メソッドは利用できない。
+     *
+     * 呼び出した場合、{@link UnsupportedOperationException}を送出する。
      */
     @Override
-    @Deprecated
     public ExecutionContext setSessionStoreMap(Map<String, Object> map) {
         throw new UnsupportedOperationException("Please use \"sessionScope\" instead of \"sessionStore\".");
     }
 
     /**
-     * @deprecated セッションストアは使用できません。代わりにセッションスコープを使用してください。
-     * {@link #getSessionScopedVar(String)}
+     * 本メソッドは利用できない。
+     *
+     * 呼び出した場合、{@link UnsupportedOperationException}を送出する。
      */
     @Override
-    @Deprecated
     public <T> T getSessionStoredVar(String varName) throws ClassCastException {
         throw new UnsupportedOperationException("Please use \"sessionScope\" instead of \"sessionStore\".");
     }
 
     /**
-     * @deprecated セッションストアは使用できません。代わりにセッションスコープを使用してください。
-     * {@link #setSessionScopedVar(String, Object)}
+     * 本メソッドは利用できない。
+     *
+     * 呼び出した場合、{@link UnsupportedOperationException}を送出する。
      */
     @Override
-    @Deprecated
     public ExecutionContext setSessionStoredVar(String varName, Object varValue) {
         throw new UnsupportedOperationException("Please use \"sessionScope\" instead of \"sessionStore\".");
     }
