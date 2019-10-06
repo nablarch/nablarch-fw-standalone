@@ -100,7 +100,7 @@ public class MainTest {
                         }
                     }, null
             );
-            future.get(10, TimeUnit.SECONDS);
+            future.get(20, TimeUnit.SECONDS);
         } finally {
             executorService.shutdownNow();
         }
