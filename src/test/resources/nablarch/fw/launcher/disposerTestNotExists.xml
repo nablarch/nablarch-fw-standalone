@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <list name="handlerQueue">
+    <component class="nablarch.fw.launcher.MainTest$ResultErrorHandler" />
+  </list>
+
+  <component name="disposable1" class="nablarch.fw.launcher.MockDisposable" />
+  <component name="disposable2" class="nablarch.fw.launcher.MockDisposable" />
+  <component name="disposable3" class="nablarch.fw.launcher.MockDisposable" />
+
+</component-configuration>

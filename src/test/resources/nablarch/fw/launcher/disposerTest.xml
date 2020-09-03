@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <import file="db-default.xml" />
+
+  <component name="businessDateProvider" class="nablarch.fw.mock.MockBusinessDateProvider">
+    <property name="date" value="20170101"/>
+  </component>
+
+  <list name="handlerQueue">
+    <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
+    <component class="nablarch.fw.handler.GlobalErrorHandler" />
+    <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
+      <property name="immediate" value="false" />
+    </component>
+    <component class="nablarch.fw.handler.MultiThreadExecutionHandler" />
+    <component class="nablarch.common.handler.DbConnectionManagementHandler">
+      <property name="connectionFactory" ref="connectionFactory" />
+    </component>
+    <component class="nablarch.fw.handler.LoopHandler">
+      <property name="commitInterval" value="1" />
+      <property name="transactionFactory" ref="jdbcTransactionFactory" />
+    </component>
+    <component class="nablarch.fw.handler.DataReadHandler" />
+  </list>
+  
+  <component name="disposable1" class="nablarch.fw.launcher.MockDisposable" />
+  <component name="disposable2" class="nablarch.fw.launcher.MockDisposable" />
+  <component name="disposable3" class="nablarch.fw.launcher.MockDisposable" />
+
+  <component name="disposer" class="nablarch.core.repository.disposal.BasicApplicationDisposer">
+    <property name="disposableList">
+      <list>
+        <component-ref name="disposable1" />
+        <component-ref name="disposable2" />
+        <component-ref name="disposable3" />
+      </list>
+    </property>
+  </component>
+
+</component-configuration>

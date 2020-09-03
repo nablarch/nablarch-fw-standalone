@@ -14,6 +14,7 @@ import nablarch.core.repository.SystemRepository;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.DuplicateDefinitionPolicy;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
+import nablarch.core.repository.disposal.ApplicationDisposer;
 import nablarch.core.util.StringUtil;
 import nablarch.core.util.annotation.Published;
 import nablarch.fw.DataReader;
@@ -146,6 +147,11 @@ public class Main extends HandlerQueueManager<Main>
         } catch (Error e) {
             FailureLogUtil.logFatal(e, null, null, new Object[0]);
             return UNKNOWN_ERROR;
+        } finally {
+            ApplicationDisposer disposer = SystemRepository.get("disposer");
+            if (disposer != null) {
+                disposer.dispose();
+            }
         }
 
         if (result instanceof Integer) {
