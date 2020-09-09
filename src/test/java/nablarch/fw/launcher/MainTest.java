@@ -8,12 +8,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import nablarch.core.repository.SystemRepository;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
 import nablarch.fw.Result;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +28,7 @@ public class MainTest {
 
     @Before
     public void setUp() throws Exception {
+        SystemRepository.clear();
         OnMemoryLogWriter.clear();
     }
 
@@ -136,6 +137,73 @@ public class MainTest {
 
         OnMemoryLogWriter.assertLogContains("writer.monitorLog", "fail_code = [MSG99999] an unexpected exception occurred.");
         OnMemoryLogWriter.assertLogContains("writer.appLog", "fail_code = [MSG99999] an unexpected exception occurred.");
+    }
+
+    /**
+     * 正常終了時に廃棄処理が呼ばれること。
+     */
+    @Test
+    public void testApplicationDisposerIsInvokedAtNormalEnd() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/disposerTest.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main.execute(commandLine);
+
+        MockDisposable disposable1 = SystemRepository.get("disposable1");
+        MockDisposable disposable2 = SystemRepository.get("disposable2");
+        MockDisposable disposable3 = SystemRepository.get("disposable3");
+
+        assertThat(disposable1.isDisposed(), is(true));
+        assertThat(disposable2.isDisposed(), is(true));
+        assertThat(disposable3.isDisposed(), is(true));
+    }
+
+    /**
+     * 異常終了時も廃棄処理が呼ばれること。
+     */
+    @Test
+    public void testApplicationDisposerIsInvokedAtErrorCase() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/disposerTestErrorCase.xml",
+                "-requestPath", "dummy",
+                "-userId", "dummy"
+        );
+
+        Main.execute(commandLine);
+
+        MockDisposable disposable1 = SystemRepository.get("disposable1");
+        MockDisposable disposable2 = SystemRepository.get("disposable2");
+        MockDisposable disposable3 = SystemRepository.get("disposable3");
+
+        assertThat(disposable1.isDisposed(), is(true));
+        assertThat(disposable2.isDisposed(), is(true));
+        assertThat(disposable3.isDisposed(), is(true));
+    }
+
+    /**
+     * {@link nablarch.core.repository.disposal.ApplicationDisposer}のコンポーネントが存在するときだけ廃棄処理が呼ばれること。
+     */
+    @Test
+    public void testApplicationDisposerIsInvokedOnlyExistsComponent() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/disposerTestNotExists.xml",
+                "-requestPath", "dummy",
+                "-userId", "dummy"
+        );
+
+        Main.execute(commandLine);
+
+        MockDisposable disposable1 = SystemRepository.get("disposable1");
+        MockDisposable disposable2 = SystemRepository.get("disposable2");
+        MockDisposable disposable3 = SystemRepository.get("disposable3");
+
+        assertThat(disposable1.isDisposed(), is(false));
+        assertThat(disposable2.isDisposed(), is(false));
+        assertThat(disposable3.isDisposed(), is(false));
     }
 
     public static class ErrorHandler implements Handler<Object, Object> {
