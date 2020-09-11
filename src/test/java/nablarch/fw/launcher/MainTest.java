@@ -223,6 +223,22 @@ public class MainTest {
         assertThat("正常終了なので戻り値は0となる。", exitCode, is(0));
     }
 
+    /**
+     * {@link Result} 以外の値が返された場合は正常終了扱いにする。
+     */
+    @Test
+    public void testReturnNonResult() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/testReturnNonResult.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.ReturnNonResultAction/RS100",
+                "-userId", "hoge"
+        );
+
+        int exitCode = Main.execute(commandLine);
+        assertThat("正常終了扱いなので0を返す。", exitCode, is(0));
+    }
+
     public static class ErrorHandler implements Handler<Object, Object> {
 
         @Override
