@@ -1,22 +1,27 @@
 package nablarch.fw.launcher;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
+import nablarch.common.handler.DbConnectionManagementHandler;
+import nablarch.core.repository.SystemRepository;
+import nablarch.fw.ExecutionContext;
+import nablarch.fw.Handler;
+import nablarch.fw.Result;
+import nablarch.fw.StandaloneExecutionContext;
+import nablarch.fw.handler.*;
+import nablarch.test.support.db.helper.DatabaseTestRunner;
+import nablarch.test.support.log.app.OnMemoryLogWriter;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import nablarch.core.repository.SystemRepository;
-import nablarch.fw.ExecutionContext;
-import nablarch.fw.Handler;
-import nablarch.fw.Result;
-import nablarch.test.support.db.helper.DatabaseTestRunner;
-import nablarch.test.support.log.app.OnMemoryLogWriter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@link Main}のテストクラス。
@@ -253,6 +258,33 @@ public class MainTest {
 
         int exitCode = Main.execute(commandLine);
         assertThat("不明なエラー扱いとなる", exitCode, is(127));
+    }
+
+    /**
+     * ロードされたハンドラキューがgetHandlerQueue()で取得できること。
+     */
+    @Test
+    public void testGetHandlerQueueReturnsLoadedHandlerQueue() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/main.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main sut = new Main();
+
+        sut.handle(commandLine, new StandaloneExecutionContext());
+
+        assertThat(sut.getHandlerQueue(), contains(
+            instanceOf(StatusCodeConvertHandler.class),
+            instanceOf(GlobalErrorHandler.class),
+            instanceOf(RequestPathJavaPackageMapping.class),
+            instanceOf(MultiThreadExecutionHandler.class),
+            instanceOf(DbConnectionManagementHandler.class),
+            instanceOf(LoopHandler.class),
+            instanceOf(DataReadHandler.class)
+        ));
     }
 
     public static class ErrorHandler implements Handler<Object, Object> {
