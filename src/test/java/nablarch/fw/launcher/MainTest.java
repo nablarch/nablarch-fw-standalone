@@ -206,6 +206,23 @@ public class MainTest {
         assertThat(disposable3.isDisposed(), is(false));
     }
 
+    /**
+     * {@link nablarch.fw.handler.StatusCodeConvertHandler} がハンドラキューに
+     * 設定されておらず {@link Result} がそのまま返されたときも戻り値が正常に処理されることのテスト（正常終了時）。
+     */
+    @Test
+    public void testWithoutStatusCodeConvertHandlerInSuccessCase() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/testWithoutStatusCodeConvertHandler.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        int exitCode = Main.execute(commandLine);
+        assertThat("正常終了なので戻り値は0となる。", exitCode, is(0));
+    }
+
     public static class ErrorHandler implements Handler<Object, Object> {
 
         @Override
