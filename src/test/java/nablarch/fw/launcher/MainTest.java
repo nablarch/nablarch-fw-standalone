@@ -239,6 +239,22 @@ public class MainTest {
         assertThat("正常終了扱いなので0を返す。", exitCode, is(0));
     }
 
+    /**
+     * diConfig パラメータに空文字が設定された場合は異常終了とする。
+     */
+    @Test
+    public void testErrorEndIfDiConfigParameterIsNotSet() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        int exitCode = Main.execute(commandLine);
+        assertThat("不明なエラー扱いとなる", exitCode, is(127));
+    }
+
     public static class ErrorHandler implements Handler<Object, Object> {
 
         @Override
