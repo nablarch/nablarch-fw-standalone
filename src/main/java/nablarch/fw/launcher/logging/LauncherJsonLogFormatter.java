@@ -42,6 +42,7 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getStartLogMsg(CommandLine commandLine) {
         if (support == null) support = new JsonLogFormatterSupport(PROPS_PREFIX);
 
@@ -86,6 +87,7 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getEndLogMsg(int exitCode, long executeTime) {
         if (support == null) support = new JsonLogFormatterSupport(PROPS_PREFIX);
 
