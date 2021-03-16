@@ -7,12 +7,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
 
 /**
- * {@link nablarch.fw.launcher.logging.LauncherJsonLogFormatter}のテストクラス。
+ * {@link LauncherJsonLogFormatter}のテストクラス。
  *
  * @author Shuji Kitamura
  */
