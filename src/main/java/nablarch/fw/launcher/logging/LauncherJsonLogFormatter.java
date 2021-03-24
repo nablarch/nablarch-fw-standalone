@@ -2,6 +2,7 @@ package nablarch.fw.launcher.logging;
 
 import nablarch.core.log.app.AppLogUtil;
 import nablarch.core.log.app.JsonLogFormatterSupport;
+import nablarch.core.text.json.JsonSerializationSettings;
 import nablarch.core.util.StringUtil;
 import nablarch.fw.launcher.CommandLine;
 
@@ -44,7 +45,10 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
      */
     @Override
     public String getStartLogMsg(CommandLine commandLine) {
-        if (support == null) support = new JsonLogFormatterSupport(PROPS_PREFIX);
+        if (support == null) {
+            support = new JsonLogFormatterSupport(
+                    new JsonSerializationSettings(AppLogUtil.getProps(), PROPS_PREFIX, AppLogUtil.getFilePath()));
+        }
 
         Map<String, Object> structuredObject
                 = getStartStructuredObject(AppLogUtil.getProps(), commandLine);
@@ -89,7 +93,10 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
      */
     @Override
     public String getEndLogMsg(int exitCode, long executeTime) {
-        if (support == null) support = new JsonLogFormatterSupport(PROPS_PREFIX);
+        if (support == null) {
+            support = new JsonLogFormatterSupport(
+                    new JsonSerializationSettings(AppLogUtil.getProps(), PROPS_PREFIX, AppLogUtil.getFilePath()));
+        }
 
         Map<String, Object> structuredObject
                 = getEndStructuredObject(AppLogUtil.getProps(), exitCode, executeTime);
