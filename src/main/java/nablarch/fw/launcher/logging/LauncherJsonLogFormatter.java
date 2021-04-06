@@ -66,11 +66,9 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
         Map<String, Object> structuredObject = new HashMap<String, Object>();
 
         String[] targets = targetsStr.split(",");
-        Set<String> keys = new HashSet<String>(targets.length);
         for (String target: targets) {
             String key = target.trim();
-            if (!StringUtil.isNullOrEmpty(key) && !keys.contains(key)) {
-                keys.add(key);
+            if (!StringUtil.isNullOrEmpty(key) && !structuredObject.containsKey(key)) {
                 if (TARGET_NAME_COMMAND_LINE_OPTIONS.equals(key)) {
                     structuredObject.put(
                             TARGET_NAME_COMMAND_LINE_OPTIONS,
