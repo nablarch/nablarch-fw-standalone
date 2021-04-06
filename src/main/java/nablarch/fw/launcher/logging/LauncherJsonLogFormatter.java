@@ -38,7 +38,7 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     private static final String DEFAULT_END_LOG_TARGETS = "exitCode,executeTime";
 
     /** 各種ログのJSONフォーマット支援オブジェクト */
-    private JsonLogFormatterSupport support = null;
+    private JsonLogFormatterSupport support;
 
     /**
      * {@inheritDoc}
