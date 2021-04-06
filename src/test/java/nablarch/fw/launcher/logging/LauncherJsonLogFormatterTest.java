@@ -2,8 +2,6 @@ package nablarch.fw.launcher.logging;
 
 import nablarch.core.log.LogTestSupport;
 import nablarch.fw.launcher.CommandLine;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.isJson;
@@ -21,16 +19,6 @@ import static org.hamcrest.core.Is.is;
  * @author Shuji Kitamura
  */
 public class LauncherJsonLogFormatterTest extends LogTestSupport {
-
-    @Before
-    public void setup() {
-        System.clearProperty("performanceLogFormatter.targets");
-    }
-
-    @After
-    public void teardown() {
-        System.clearProperty("performanceLogFormatter.targets");
-    }
 
     /**
      * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
