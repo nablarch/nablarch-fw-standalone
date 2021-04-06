@@ -59,7 +59,9 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
      */
     protected Map<String, Object> getStartStructuredObject(Map<String, String> props, CommandLine commandLine) {
         String targetsStr = props.get(PROPS_START_LOGTARGETS);
-        if (StringUtil.isNullOrEmpty(targetsStr)) targetsStr = DEFAULT_START_LOG_TARGETS;
+        if (StringUtil.isNullOrEmpty(targetsStr)) {
+            targetsStr = DEFAULT_START_LOG_TARGETS;
+        }
 
         Map<String, Object> structuredObject = new HashMap<String, Object>();
 
