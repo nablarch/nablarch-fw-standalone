@@ -23,13 +23,13 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
 
     /** ラベルの項目名 */
     private static final String TARGET_NAME_LABEL = "label";
-    /** 連絡先の項目名 */
+    /** コマンドラインオプションの項目名 */
     private static final String TARGET_NAME_COMMAND_LINE_OPTIONS = "commandLineOptions";
-    /** 連絡先の項目名 */
+    /** コマンドライン引数の項目名 */
     private static final String TARGET_NAME_COMMAND_LINE_ARGUMENTS = "commandLineArguments";
-    /** 連絡先の項目名 */
+    /** 終了コードの項目名 */
     private static final String TARGET_NAME_EXIT_CODE = "exitCode";
-    /** 連絡先の項目名 */
+    /** 処理時間の項目名 */
     private static final String TARGET_NAME_EXECUTE_TIME = "executeTime";
 
     /** 開始ログの出力項目を取得する際に使用するプロパティ名 */
