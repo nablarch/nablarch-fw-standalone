@@ -42,6 +42,7 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         String message = formatter.getStartLogMsg(commandLine);
         assertThat(message.startsWith("$JSON$"), is(true));
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$", hasEntry("label", "BEGIN")),
                 withJsonPath("$.commandLineOptions", hasEntry("diConfig", "test.xml")),
                 withJsonPath("$.commandLineOptions", hasEntry("userId", "testUser")),
                 withJsonPath("$.commandLineOptions", hasEntry("requestPath", "nablarch.hoge.HogeAction/RBHOGEHOGE")),
@@ -61,6 +62,7 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         message = formatter.getStartLogMsg(commandLine);
         assertThat(message.startsWith("$JSON$"), is(true));
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$", hasEntry("label", "BEGIN")),
                 withJsonPath("$.commandLineOptions", hasEntry("diConfig", "test.xml")),
                 withJsonPath("$.commandLineOptions", hasEntry("userId", "testUser")),
                 withJsonPath("$.commandLineOptions", hasEntry("requestPath", "nablarch.hoge.HogeAction/RBHOGEHOGE")),
@@ -148,18 +150,21 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         String message = formatter.getEndLogMsg(0, 100);
         assertThat(message.startsWith("$JSON$"), is(true));
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$", hasEntry("label", "END")),
                 withJsonPath("$", hasEntry("exitCode", 0)),
                 withJsonPath("$", hasEntry("executeTime", 100)))));
 
         message = formatter.getEndLogMsg(101, 100000000);
         assertThat(message.startsWith("$JSON$"), is(true));
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$", hasEntry("label", "END")),
                 withJsonPath("$", hasEntry("exitCode", 101)),
                 withJsonPath("$", hasEntry("executeTime", 100000000)))));
 
         message = formatter.getEndLogMsg(1, Long.MAX_VALUE);
         assertThat(message.startsWith("$JSON$"), is(true));
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$", hasEntry("label", "END")),
                 withJsonPath("$", hasEntry("exitCode", 1)),
                 withJsonPath("$", hasEntry("executeTime", Long.MAX_VALUE)))));
     }
