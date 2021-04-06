@@ -38,18 +38,14 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     private static final String DEFAULT_END_LOG_TARGETS = "exitCode,executeTime";
 
     /** 各種ログのJSONフォーマット支援オブジェクト */
-    private JsonLogFormatterSupport support;
+    private final JsonLogFormatterSupport support = new JsonLogFormatterSupport(
+            new JsonSerializationSettings(AppLogUtil.getProps(), PROPS_PREFIX, AppLogUtil.getFilePath()));
 
     /**
      * {@inheritDoc}
      */
     @Override
     public String getStartLogMsg(CommandLine commandLine) {
-        if (support == null) {
-            support = new JsonLogFormatterSupport(
-                    new JsonSerializationSettings(AppLogUtil.getProps(), PROPS_PREFIX, AppLogUtil.getFilePath()));
-        }
-
         Map<String, Object> structuredObject
                 = getStartStructuredObject(AppLogUtil.getProps(), commandLine);
         return support.getStructuredMessage(structuredObject);
@@ -93,11 +89,6 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
      */
     @Override
     public String getEndLogMsg(int exitCode, long executeTime) {
-        if (support == null) {
-            support = new JsonLogFormatterSupport(
-                    new JsonSerializationSettings(AppLogUtil.getProps(), PROPS_PREFIX, AppLogUtil.getFilePath()));
-        }
-
         Map<String, Object> structuredObject
                 = getEndStructuredObject(AppLogUtil.getProps(), exitCode, executeTime);
         return support.getStructuredMessage(structuredObject);
