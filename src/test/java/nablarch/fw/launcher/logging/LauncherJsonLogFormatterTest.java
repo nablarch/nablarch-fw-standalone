@@ -78,7 +78,7 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
-     * 不正なターゲットのテスト。
+     * 不正なターゲットがあってもエラーにならないことのテスト。
      */
     @Test
     public void testGetStartLogMsgWithIllegalTargets() {
@@ -137,7 +137,7 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getEndLogMsg(int, long)}のテスト。
-     * 不正なターゲットのテスト。
+     * 不正なターゲットがあってもエラーにならないことのテスト。
      */
     @Test
     public void testGetEndLogMsgWithIllegalTargets() {
