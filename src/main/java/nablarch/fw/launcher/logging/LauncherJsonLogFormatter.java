@@ -33,7 +33,7 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     private static final String TARGET_NAME_EXECUTE_TIME = "executeTime";
 
     /** 開始ログの出力項目を取得する際に使用するプロパティ名 */
-    private static final String PROPS_START_LOGTARGETS = PROPS_PREFIX + "startTargets";
+    private static final String PROPS_START_LOG_TARGETS = PROPS_PREFIX + "startTargets";
     /** 終了ログの出力項目を取得する際に使用するプロパティ名 */
     private static final String PROPS_END_LOG_TARGETS = PROPS_PREFIX + "endTargets";
 
@@ -80,7 +80,7 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
 
         String startMessageLogLabel = getProp(props, PROPS_START_LOG_MSG_LABEL, DEFAULT_START_LOG_MSG_LABEL);
         objectBuilders.put(TARGET_NAME_LABEL, new LabelBuilder(startMessageLogLabel));
-        startLogMessageTargets = getStructuredTargets(objectBuilders, props, PROPS_START_LOGTARGETS, DEFAULT_START_LOG_TARGETS);
+        startLogMessageTargets = getStructuredTargets(objectBuilders, props, PROPS_START_LOG_TARGETS, DEFAULT_START_LOG_TARGETS);
 
         String endMessageLogLabel = getProp(props, PROPS_END_LOG_MSG_LABEL, DEFAULT_END_LOG_MSG_LABEL);
         objectBuilders.put(TARGET_NAME_LABEL, new LabelBuilder(endMessageLogLabel));
