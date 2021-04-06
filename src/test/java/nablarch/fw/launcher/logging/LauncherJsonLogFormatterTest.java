@@ -78,6 +78,35 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
+     * targets を指定した場合のテスト。
+     */
+    @Test
+    public void testGetStartLogMsgWithTargets() {
+        System.setProperty("launcherLogFormatter.startTargets", "commandLineOptions");
+        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+
+        String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
+        String userId = "testUser";
+        String diConfig = "test.xml";
+
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", diConfig,
+                "-userId", userId,
+                "-requestPath", requestPath
+        );
+
+        String message = formatter.getStartLogMsg(commandLine);
+        assertThat(message.startsWith("$JSON$"), is(true));
+        assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$.*", hasSize(1)),
+                withJsonPath("$.commandLineOptions", hasEntry("diConfig", "test.xml")),
+                withJsonPath("$.commandLineOptions", hasEntry("userId", "testUser")),
+                withJsonPath("$.commandLineOptions", hasEntry("requestPath", "nablarch.hoge.HogeAction/RBHOGEHOGE"))
+        )));
+    }
+
+    /**
+     * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
      * 不正なターゲットがあってもエラーにならないことのテスト。
      */
     @Test
@@ -133,6 +162,23 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
                 withJsonPath("$", hasEntry("exitCode", 1)),
                 withJsonPath("$", hasEntry("executeTime", Long.MAX_VALUE)))));
+    }
+
+    /**
+     * {@link LauncherJsonLogFormatter#getEndLogMsg(int, long)}のテスト。
+     * targets を指定した場合。
+     */
+    @Test
+    public void testGetEndLogMsgWithTargets() {
+        System.setProperty("launcherLogFormatter.endTargets", "exitCode");
+        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+
+        String message = formatter.getEndLogMsg(0, 100);
+        assertThat(message.startsWith("$JSON$"), is(true));
+        assertThat(message.substring("$JSON$".length()), isJson(allOf(
+            withJsonPath("$.*", hasSize(1)),
+            withJsonPath("$", hasEntry("exitCode", 0))
+        )));
     }
 
     /**
