@@ -3,15 +3,16 @@ package nablarch.fw.launcher.logging;
 import nablarch.core.log.LogTestSupport;
 import nablarch.fw.launcher.CommandLine;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.isJson;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.withJsonPath;
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.withoutJsonPath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThrows;
 
 /**
  * {@link LauncherJsonLogFormatter}のテストクラス。
@@ -109,33 +110,20 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
-     * 不正なターゲットがあってもエラーにならないことのテスト。
+     * 不正なターゲットがあった場合はエラーになること。
      */
     @Test
     public void testGetStartLogMsgWithIllegalTargets() {
         System.setProperty("launcherLogFormatter.startTargets", "commandLineOptions ,, ,dummy,commandLineOptions");
 
-        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, new ThrowingRunnable() {
+            @Override
+            public void run() {
+                new LauncherJsonLogFormatter();
+            }
+        });
 
-        String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
-        String userId = "testUser";
-        String diConfig = "test.xml";
-
-        CommandLine commandLine = new CommandLine(
-                "-diConfig", diConfig,
-                "-userId", userId,
-                "-requestPath", requestPath,
-                "h", "o", "g", "e", "hoge"
-        );
-
-        String message = formatter.getStartLogMsg(commandLine);
-
-        assertThat(message.startsWith("$JSON$"), is(true));
-        assertThat(message.substring("$JSON$".length()), isJson(allOf(
-                withJsonPath("$.commandLineOptions", hasEntry("diConfig", "test.xml")),
-                withJsonPath("$.commandLineOptions", hasEntry("userId", "testUser")),
-                withJsonPath("$.commandLineOptions", hasEntry("requestPath", "nablarch.hoge.HogeAction/RBHOGEHOGE")),
-                withoutJsonPath("$.commandLineArguments"))));
+        assertThat(exception.getMessage(), is("[dummy] is unknown target. property name = [launcherLogFormatter.startTargets]"));
     }
 
     /**
@@ -188,19 +176,20 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getEndLogMsg(int, long)}のテスト。
-     * 不正なターゲットがあってもエラーにならないことのテスト。
+     * 不正なターゲットがあった場合はエラーになること。
      */
     @Test
     public void testGetEndLogMsgWithIllegalTargets() {
         System.setProperty("launcherLogFormatter.endTargets", "exitCode ,, ,dummy,exitCode");
 
-        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, new ThrowingRunnable() {
+            @Override
+            public void run() {
+                new LauncherJsonLogFormatter();
+            }
+        });
 
-        String message = formatter.getEndLogMsg(0, 100);
-        assertThat(message.startsWith("$JSON$"), is(true));
-        assertThat(message.substring("$JSON$".length()), isJson(allOf(
-                withJsonPath("$", hasEntry("exitCode", 0)),
-                withoutJsonPath("$.executeTime"))));
+        assertThat(exception.getMessage(), is("[dummy] is unknown target. property name = [launcherLogFormatter.endTargets]"));
     }
 
 }

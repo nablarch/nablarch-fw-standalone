@@ -146,6 +146,9 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
                 keys.add(key);
                 if (objectBuilders.containsKey(key)) {
                     structuredTargets.add(objectBuilders.get(key));
+                } else {
+                    throw new IllegalArgumentException(
+                            String.format("[%s] is unknown target. property name = [%s]", key, targetsPropName));
                 }
             }
         }
