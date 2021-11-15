@@ -110,6 +110,34 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
 
     /**
      * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
+     * labelの値を指定した場合。
+     */
+    @Test
+    public void testGetStartLogMsgWithLabelValue() {
+        System.setProperty("launcherLogFormatter.startTargets", "label");
+        System.setProperty("launcherLogFormatter.startLogMsgLabel", "begin-label");
+        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+
+        String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
+        String userId = "testUser";
+        String diConfig = "test.xml";
+
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", diConfig,
+                "-userId", userId,
+                "-requestPath", requestPath
+        );
+
+        String message = formatter.getStartLogMsg(commandLine);
+        assertThat(message.startsWith("$JSON$"), is(true));
+        assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$.*", hasSize(1)),
+                withJsonPath("$", hasEntry("label", "begin-label"))
+        )));
+    }
+
+    /**
+     * {@link LauncherJsonLogFormatter#getStartLogMsg(CommandLine)}のテスト。
      * 不正なターゲットがあった場合はエラーになること。
      */
     @Test
@@ -171,6 +199,24 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         assertThat(message.substring("$JSON$".length()), isJson(allOf(
             withJsonPath("$.*", hasSize(1)),
             withJsonPath("$", hasEntry("exitCode", 0))
+        )));
+    }
+
+    /**
+     * {@link LauncherJsonLogFormatter#getEndLogMsg(int, long)}のテスト。
+     * labelの値を指定した場合。
+     */
+    @Test
+    public void testGetEndLogMsgWithLabelValue() {
+        System.setProperty("launcherLogFormatter.endTargets", "label");
+        System.setProperty("launcherLogFormatter.endLogMsgLabel", "end-label");
+        LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
+
+        String message = formatter.getEndLogMsg(0, 100);
+        assertThat(message.startsWith("$JSON$"), is(true));
+        assertThat(message.substring("$JSON$".length()), isJson(allOf(
+                withJsonPath("$.*", hasSize(1)),
+                withJsonPath("$", hasEntry("label", "end-label"))
         )));
     }
 
