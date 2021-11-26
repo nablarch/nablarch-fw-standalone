@@ -18,6 +18,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThrows;
 
@@ -243,6 +244,28 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         });
 
         assertThat(exception.getMessage(), is("[dummy] is unknown target. property name = [launcherLogFormatter.endTargets]"));
+    }
+
+    /**
+     * structuredMessagePrefix を指定できることのテスト。
+     */
+    @Test
+    public void testStructuredMessagePrefix() {
+        System.setProperty("launcherLogFormatter.structuredMessagePrefix", "@JSON@");
+
+        String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
+        String userId = "testUser";
+        String diConfig = "test.xml";
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", diConfig,
+                "-userId", userId,
+                "-requestPath", requestPath
+        );
+
+        LauncherJsonLogFormatter sut = new LauncherJsonLogFormatter();
+
+        assertThat(sut.getStartLogMsg(commandLine), startsWith("@JSON@"));
+        assertThat(sut.getEndLogMsg(10, 20), startsWith("@JSON@"));
     }
 
     /**
