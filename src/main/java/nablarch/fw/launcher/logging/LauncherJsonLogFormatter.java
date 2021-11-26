@@ -50,9 +50,9 @@ public class LauncherJsonLogFormatter extends LauncherLogFormatter {
     private static final String DEFAULT_END_LOG_TARGETS = "label,exitCode,executeTime";
 
     /** デフォルトの開始ログメッセージのラベル */
-    private static final String DEFAULT_START_LOG_MSG_LABEL = "BEGIN";
+    private static final String DEFAULT_START_LOG_MSG_LABEL = "BATCH BEGIN";
     /** デフォルトの州力ログメッセージのラベル */
-    private static final String DEFAULT_END_LOG_MSG_LABEL = "END";
+    private static final String DEFAULT_END_LOG_MSG_LABEL = "BATCH END";
 
     /** 開始ログの出力項目 */
     private List<JsonLogObjectBuilder<LauncherLogContext>> startLogMessageTargets;
