@@ -1,9 +1,16 @@
 package nablarch.fw.launcher.logging;
 
 import nablarch.core.log.LogTestSupport;
+import nablarch.core.text.json.BasicJsonSerializationManager;
+import nablarch.core.text.json.JsonSerializationManager;
+import nablarch.core.text.json.JsonSerializationSettings;
+import nablarch.core.text.json.JsonSerializer;
 import nablarch.fw.launcher.CommandLine;
 import org.junit.Test;
 import org.junit.function.ThrowingRunnable;
+
+import java.io.IOException;
+import java.io.Writer;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.isJson;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.withJsonPath;
@@ -238,4 +245,56 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
         assertThat(exception.getMessage(), is("[dummy] is unknown target. property name = [launcherLogFormatter.endTargets]"));
     }
 
+    /**
+     * {@link nablarch.core.text.json.JsonSerializationManager}を変更できることをテスト。
+     */
+    @Test
+    public void testChangeJsonSerializationManager() {
+        System.setProperty("launcherLogFormatter.endTargets", "exitCode");
+
+        LauncherJsonLogFormatter sut = new LauncherJsonLogFormatter() {
+            @Override
+            protected JsonSerializationManager createSerializationManager(JsonSerializationSettings settings) {
+                assertThat(settings.getProp("endTargets"), is("exitCode"));
+                return new MockJsonSerializationManager();
+            }
+        };
+
+        String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
+        String userId = "testUser";
+        String diConfig = "test.xml";
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", diConfig,
+                "-userId", userId,
+                "-requestPath", requestPath
+        );
+
+        assertThat(sut.getStartLogMsg(commandLine), is("$JSON$mock serialization"));
+        assertThat(sut.getEndLogMsg(10, 20), is("$JSON$mock serialization"));
+    }
+
+    /**
+     * {@link nablarch.core.text.json.JsonSerializationManager}のモッククラス。
+     */
+    private static class MockJsonSerializationManager extends BasicJsonSerializationManager {
+        @Override
+        public JsonSerializer getSerializer(Object value) {
+            return new JsonSerializer() {
+
+                @Override
+                public void serialize(Writer writer, Object value) throws IOException {
+                    writer.write("mock serialization");
+                }
+
+                @Override
+                public void initialize(JsonSerializationSettings settings) {
+                }
+
+                @Override
+                public boolean isTarget(Class<?> valueClass) {
+                    return false;
+                }
+            };
+        }
+    }
 }
