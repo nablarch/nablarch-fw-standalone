@@ -93,7 +93,7 @@ public class LauncherJsonLogFormatterTest extends LogTestSupport {
      */
     @Test
     public void testGetStartLogMsgWithTargets() {
-        System.setProperty("launcherLogFormatter.startTargets", "commandLineOptions");
+        System.setProperty("launcherLogFormatter.startTargets", "commandLineOptions,,commandLineOptions");
         LauncherLogFormatter formatter = new LauncherJsonLogFormatter();
 
         String requestPath = "nablarch.hoge.HogeAction/RBHOGEHOGE";
