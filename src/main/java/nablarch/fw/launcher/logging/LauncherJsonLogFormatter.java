@@ -7,6 +7,7 @@ import nablarch.core.text.json.BasicJsonSerializationManager;
 import nablarch.core.text.json.JsonSerializationManager;
 import nablarch.core.text.json.JsonSerializationSettings;
 import nablarch.core.util.StringUtil;
+import nablarch.core.util.annotation.Published;
 import nablarch.fw.launcher.CommandLine;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.Set;
  *
  * @author Shuji Kitamura
  */
+@Published(tag = "architect")
 public class LauncherJsonLogFormatter extends LauncherLogFormatter {
 
     /** ラベルの項目名 */
