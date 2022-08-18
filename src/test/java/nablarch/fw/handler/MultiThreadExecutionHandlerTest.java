@@ -450,7 +450,7 @@ public class MultiThreadExecutionHandlerTest {
 
         //-------------- Action内でエラーが発生した。----------------
 
-        final List<Throwable> eList = new ArrayList<Throwable>();
+        final List<Throwable> eList = Collections.synchronizedList(new ArrayList<Throwable>());
 
         class TestAction extends BaseAction<Map<String, String>> {
             @Override
@@ -552,6 +552,7 @@ public class MultiThreadExecutionHandlerTest {
         }
 
         for (Throwable e : eList) {
+            System.out.println("e => " + e);
             assertEquals("発生したすべての例外に関連するデータが親スレッドのExecutionContextに設定されていること",
                          e.getMessage(),
                          context.getDataProcessedWhenThrown(e).toString());
