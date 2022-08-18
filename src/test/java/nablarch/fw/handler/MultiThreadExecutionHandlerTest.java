@@ -552,7 +552,6 @@ public class MultiThreadExecutionHandlerTest {
         }
 
         for (Throwable e : eList) {
-            System.out.println("e => " + e);
             assertEquals("発生したすべての例外に関連するデータが親スレッドのExecutionContextに設定されていること",
                          e.getMessage(),
                          context.getDataProcessedWhenThrown(e).toString());
