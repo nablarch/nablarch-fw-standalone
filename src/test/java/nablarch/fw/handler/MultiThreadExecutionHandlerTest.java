@@ -450,7 +450,7 @@ public class MultiThreadExecutionHandlerTest {
 
         //-------------- Action内でエラーが発生した。----------------
 
-        final List<Throwable> eList = new ArrayList<Throwable>();
+        final List<Throwable> eList = Collections.synchronizedList(new ArrayList<Throwable>());
 
         class TestAction extends BaseAction<Map<String, String>> {
             @Override

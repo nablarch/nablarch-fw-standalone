@@ -130,9 +130,7 @@ public class Main extends HandlerQueueManager<Main>
             initializeLog();
             setupExecutionContext(commandLine, context);
 
-            // アプリケーション設定ログを出力
-            LOGGER.logInfo(
-                    ApplicationSettingLogUtil.getAppSettingsWithDateLogMsg());
+            outputAppSettingsLog();
 
             result = context.handleNext(commandLine);
 
@@ -251,5 +249,16 @@ public class Main extends HandlerQueueManager<Main>
         LogInitializationHelper.initialize();
     }
 
+    /**
+     * アプリケーション設定のログを出力する。
+     */
+    protected void outputAppSettingsLog() {
+        // アプリケーション設定ログを出力
+        if (SystemRepository.get("businessDateProvider") != null) {
+            LOGGER.logInfo(ApplicationSettingLogUtil.getAppSettingsWithDateLogMsg());
+        } else {
+            LOGGER.logInfo(ApplicationSettingLogUtil.getAppSettingsLogMsg());
+        }
+    }
 }
 
