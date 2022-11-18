@@ -1,11 +1,7 @@
 package nablarch.fw.handler;
 
-import nablarch.core.ThreadContext;
-import nablarch.core.repository.initialization.Initializable;
 import nablarch.core.util.annotation.Published;
-import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
-import nablarch.fw.Result;
 
 /**
  * 処理中のプロセスを停止するためのハンドラ。

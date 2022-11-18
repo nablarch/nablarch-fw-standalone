@@ -5,18 +5,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import nablarch.core.date.BusinessDateProvider;
 import nablarch.core.log.LogItem;
 import nablarch.core.log.LogTestSupport;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 import nablarch.fw.launcher.CommandLine;
 
-import nablarch.fw.launcher.logging.LauncherLogFormatter;
-import nablarch.fw.launcher.logging.LauncherLogUtil;
-
 import nablarch.fw.mock.MockBusinessDateProvider;
-import org.hamcrest.text.IsEqualIgnoringWhiteSpace;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
