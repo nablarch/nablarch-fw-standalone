@@ -25,7 +25,6 @@ import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.db.helper.VariousDbTestHelper;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
