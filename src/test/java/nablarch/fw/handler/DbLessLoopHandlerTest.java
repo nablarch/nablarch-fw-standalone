@@ -9,7 +9,6 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,7 +21,7 @@ public class DbLessLoopHandlerTest {
     public void データが存在する間は後続ハンドラが実行される() {
         ExecutionContext context = new ExecutionContext();
         context.setDataReader(new TestDataReader());
-        List<Handler<?, ?>> handlers = new ArrayList<>();
+        List<Handler<?, ?>> handlers = new ArrayList<Handler<?, ?>>();
         handlers.add(new DbLessLoopHandler());
         handlers.add(new DataReadHandler());
         TestActionHandler actionHandler = new TestActionHandler();
@@ -36,10 +35,12 @@ public class DbLessLoopHandlerTest {
 
     private static class TestDataReader implements DataReader<String> {
 
-        private final LinkedList<String> data = new LinkedList<>();
+        private final LinkedList<String> data = new LinkedList<String>();
 
         public TestDataReader() {
-            IntStream.rangeClosed(1, 3).forEach(value -> data.add(String.valueOf(value)));
+            for (int i = 0; i < 3; i++) {
+                data.add(String.valueOf(i));
+            }
         }
 
         @Override
@@ -60,7 +61,7 @@ public class DbLessLoopHandlerTest {
 
     private static class TestActionHandler implements Handler<String, Result> {
 
-        private final LinkedList<String> data = new LinkedList<>();
+        private final LinkedList<String> data = new LinkedList<String>();
 
         @Override
         public Result handle(String s, ExecutionContext context) {
