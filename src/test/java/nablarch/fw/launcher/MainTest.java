@@ -113,6 +113,34 @@ public class MainTest {
     }
 
     @Test
+    public void 業務日付コンポーネントが設定されている場合は業務日付有りの設定ログが出力される() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/main.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main.execute(commandLine);
+
+        OnMemoryLogWriter.assertLogContains("writer.appLog", "@@@ app log with date @@@");
+    }
+
+    @Test
+    public void 業務日付コンポーネントが設定されていない場合は業務日付無しの設定ログが出力される() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/main-without-businessdate.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main.execute(commandLine);
+
+        OnMemoryLogWriter.assertLogContains("writer.appLog", "@@@ app log @@@");
+    }
+
+    @Test
     public void リポジトリの初期化に失敗した場合障害通知ログが出力される() throws Exception {
         final Main sut = new Main();
         final CommandLine commandLine = new CommandLine("--diConfig", "nablarch/fw/launcher/invalidComponent.xml", "--requestPath", "dummy", "--userId", "dummy");
