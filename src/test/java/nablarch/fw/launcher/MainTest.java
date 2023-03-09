@@ -1,6 +1,7 @@
 package nablarch.fw.launcher;
 
 import nablarch.common.handler.DbConnectionManagementHandler;
+import nablarch.core.log.LogUtil;
 import nablarch.core.repository.SystemRepository;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
@@ -10,6 +11,7 @@ import nablarch.fw.handler.*;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +32,12 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(DatabaseTestRunner.class)
 public class MainTest {
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        System.clearProperty("nablarch.appLog.filePath");
+        LogUtil.removeAllObjectsBoundToContextClassLoader();
+    }
 
     @Before
     public void setUp() throws Exception {
