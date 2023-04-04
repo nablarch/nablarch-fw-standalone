@@ -1,6 +1,7 @@
 package nablarch.fw.launcher;
 
 import nablarch.common.handler.DbConnectionManagementHandler;
+import nablarch.core.log.LogUtil;
 import nablarch.core.repository.SystemRepository;
 import nablarch.fw.ExecutionContext;
 import nablarch.fw.Handler;
@@ -10,6 +11,7 @@ import nablarch.fw.handler.*;
 import nablarch.test.support.db.helper.DatabaseTestRunner;
 import nablarch.test.support.log.app.OnMemoryLogWriter;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -30,6 +32,12 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(DatabaseTestRunner.class)
 public class MainTest {
+
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        System.clearProperty("nablarch.appLog.filePath");
+        LogUtil.removeAllObjectsBoundToContextClassLoader();
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -110,6 +118,34 @@ public class MainTest {
         } finally {
             executorService.shutdownNow();
         }
+    }
+
+    @Test
+    public void 業務日付コンポーネントが設定されている場合は業務日付有りの設定ログが出力される() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/main.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main.execute(commandLine);
+
+        OnMemoryLogWriter.assertLogContains("writer.appLog", "@@@ app log with date @@@");
+    }
+
+    @Test
+    public void 業務日付コンポーネントが設定されていない場合は業務日付無しの設定ログが出力される() {
+        CommandLine commandLine = new CommandLine(
+                "-diConfig", "nablarch/fw/launcher/main-without-businessdate.xml",
+                "-requestPath",
+                "nablarch.fw.launcher.testaction.NormalEndAction/RS100",
+                "-userId", "hoge"
+        );
+
+        Main.execute(commandLine);
+
+        OnMemoryLogWriter.assertLogContains("writer.appLog", "@@@ app log @@@");
     }
 
     @Test
